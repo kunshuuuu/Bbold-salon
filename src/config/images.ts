@@ -1,0 +1,483 @@
+import type { IllustrationKey, ImageMask, RoomId } from '../types/database';
+
+export type ImageSlotId =
+  | 'hero_hair'
+  | 'hero_makeup'
+  | 'hero_nails'
+  | 'hero_skin'
+  | 'intro_main'
+  | 'intro_detail'
+  | 'cat_hair'
+  | 'cat_men'
+  | 'cat_colour'
+  | 'cat_treatments'
+  | 'cat_makeup'
+  | 'cat_bridal'
+  | 'cat_nails'
+  | 'cat_skin'
+  | 'cat_waxing'
+  | 'station_1'
+  | 'station_2'
+  | 'station_3'
+  | 'station_4'
+  | 'services_hero'
+  | 'team_hero'
+  | 'gallery_hero'
+  | 'academy_hero'
+  | 'academy_class'
+  | 'bridal_hero'
+  | 'about_story'
+  | 'about_space_1'
+  | 'about_space_2'
+  | 'about_space_3'
+  | 'contact_hero'
+  | 'cta_band'
+  | 'og_image';
+
+export interface ImageSlotConfig {
+  id: ImageSlotId;
+  label: string;
+  section: string;
+  aspect: string; // e.g., '3/5', '4/5', '1/1', '3/4', '16/9', '4/3', '1200/630'
+  width: number;
+  height: number;
+  mask: ImageMask;
+  illustration: IllustrationKey;
+  room: RoomId;
+  defaultAlt: string;
+  staticUrl?: string | null;
+}
+
+export const IMAGE_SLOTS: Record<ImageSlotId, ImageSlotConfig> = {
+  hero_hair: {
+    id: 'hero_hair',
+    label: 'Home Hero — Hair Capsule',
+    section: 'Homepage Hero',
+    aspect: '3/5',
+    width: 600,
+    height: 1000,
+    mask: 'capsule',
+    illustration: 'profile-bob',
+    room: 'hair',
+    defaultAlt: 'Hair styling station at Bbold Salon & Academy',
+    staticUrl: null,
+  },
+  hero_makeup: {
+    id: 'hero_makeup',
+    label: 'Home Hero — Makeup Capsule',
+    section: 'Homepage Hero',
+    aspect: '3/5',
+    width: 600,
+    height: 1000,
+    mask: 'capsule',
+    illustration: 'lipstick-and-mirror',
+    room: 'makeup',
+    defaultAlt: 'Makeup and bridal styling station at Bbold Salon & Academy',
+    staticUrl: null,
+  },
+  hero_nails: {
+    id: 'hero_nails',
+    label: 'Home Hero — Nails Capsule',
+    section: 'Homepage Hero',
+    aspect: '3/5',
+    width: 600,
+    height: 1000,
+    mask: 'capsule',
+    illustration: 'hand-with-nails',
+    room: 'nails',
+    defaultAlt: 'Nail bar and manicure station at Bbold Salon & Academy',
+    staticUrl: null,
+  },
+  hero_skin: {
+    id: 'hero_skin',
+    label: 'Home Hero — Skin Capsule',
+    section: 'Homepage Hero',
+    aspect: '3/5',
+    width: 600,
+    height: 1000,
+    mask: 'capsule',
+    illustration: 'facial-jar-and-leaf',
+    room: 'skin',
+    defaultAlt: 'Skin and facial treatment room at Bbold Salon & Academy',
+    staticUrl: null,
+  },
+  intro_main: {
+    id: 'intro_main',
+    label: 'Home Intro — Main Feature',
+    section: 'Homepage Intro',
+    aspect: '4/5',
+    width: 800,
+    height: 1000,
+    mask: 'arch',
+    illustration: 'salon-chair',
+    room: 'hair',
+    defaultAlt: 'Styling chair and mirror setup at Bbold Mumbai',
+    staticUrl: null,
+  },
+  intro_detail: {
+    id: 'intro_detail',
+    label: 'Home Intro — Overlapping Detail',
+    section: 'Homepage Intro',
+    aspect: '1/1',
+    width: 600,
+    height: 600,
+    mask: 'circle',
+    illustration: 'comb-and-scissors',
+    room: 'makeup',
+    defaultAlt: 'Precision styling tools at Bbold Salon & Academy',
+    staticUrl: null,
+  },
+  cat_hair: {
+    id: 'cat_hair',
+    label: 'Category — Haircuts & Styling',
+    section: 'Service Categories',
+    aspect: '4/5',
+    width: 640,
+    height: 800,
+    mask: 'rounded',
+    illustration: 'profile-long-waves',
+    room: 'hair',
+    defaultAlt: 'Haircuts and blow-dry styling category',
+    staticUrl: null,
+  },
+  cat_men: {
+    id: 'cat_men',
+    label: "Category — Men's Grooming",
+    section: 'Service Categories',
+    aspect: '4/5',
+    width: 640,
+    height: 800,
+    mask: 'rounded',
+    illustration: 'man-profile-fade',
+    room: 'hair',
+    defaultAlt: "Men's haircuts, fades, and beard grooming",
+    staticUrl: null,
+  },
+  cat_colour: {
+    id: 'cat_colour',
+    label: 'Category — Hair Colour',
+    section: 'Service Categories',
+    aspect: '4/5',
+    width: 640,
+    height: 800,
+    mask: 'rounded',
+    illustration: 'profile-bob',
+    room: 'hair',
+    defaultAlt: 'Balayage, highlights, and global hair colour',
+    staticUrl: null,
+  },
+  cat_treatments: {
+    id: 'cat_treatments',
+    label: 'Category — Hair Treatments',
+    section: 'Service Categories',
+    aspect: '4/5',
+    width: 640,
+    height: 800,
+    mask: 'rounded',
+    illustration: 'hair-dryer',
+    room: 'hair',
+    defaultAlt: 'Keratin, protein, and conditioning hair treatments',
+    staticUrl: null,
+  },
+  cat_makeup: {
+    id: 'cat_makeup',
+    label: 'Category — Makeup',
+    section: 'Service Categories',
+    aspect: '4/5',
+    width: 640,
+    height: 800,
+    mask: 'rounded',
+    illustration: 'makeup-brushes',
+    room: 'makeup',
+    defaultAlt: 'Party and event makeup artistry',
+    staticUrl: null,
+  },
+  cat_bridal: {
+    id: 'cat_bridal',
+    label: 'Category — Bridal',
+    section: 'Service Categories',
+    aspect: '4/5',
+    width: 640,
+    height: 800,
+    mask: 'rounded',
+    illustration: 'bridal-veil-and-flowers',
+    room: 'makeup',
+    defaultAlt: 'Bridal makeup, hair, and pre-bridal prep',
+    staticUrl: null,
+  },
+  cat_nails: {
+    id: 'cat_nails',
+    label: 'Category — Nails',
+    section: 'Service Categories',
+    aspect: '4/5',
+    width: 640,
+    height: 800,
+    mask: 'rounded',
+    illustration: 'nail-polish-bottles',
+    room: 'nails',
+    defaultAlt: 'Manicures, pedicures, gel polish, and nail extensions',
+    staticUrl: null,
+  },
+  cat_skin: {
+    id: 'cat_skin',
+    label: 'Category — Skin & Facials',
+    section: 'Service Categories',
+    aspect: '4/5',
+    width: 640,
+    height: 800,
+    mask: 'rounded',
+    illustration: 'facial-jar-and-leaf',
+    room: 'skin',
+    defaultAlt: 'Clean-ups, hydrating facials, and skin treatments',
+    staticUrl: null,
+  },
+  cat_waxing: {
+    id: 'cat_waxing',
+    label: 'Category — Waxing & Threading',
+    section: 'Service Categories',
+    aspect: '4/5',
+    width: 640,
+    height: 800,
+    mask: 'rounded',
+    illustration: 'razor-and-brush',
+    room: 'skin',
+    defaultAlt: 'Threading and full-body waxing services',
+    staticUrl: null,
+  },
+  station_1: {
+    id: 'station_1',
+    label: 'Station 01 — Hair Room',
+    section: 'Four Stations Scene',
+    aspect: '3/4',
+    width: 750,
+    height: 1000,
+    mask: 'arch',
+    illustration: 'comb-and-scissors',
+    room: 'hair',
+    defaultAlt: 'Station 01: Hair cutting, colouring, and styling chairs',
+    staticUrl: null,
+  },
+  station_2: {
+    id: 'station_2',
+    label: 'Station 02 — Makeup & Bridal Room',
+    section: 'Four Stations Scene',
+    aspect: '3/4',
+    width: 750,
+    height: 1000,
+    mask: 'arch',
+    illustration: 'lipstick-and-mirror',
+    room: 'makeup',
+    defaultAlt: 'Station 02: Makeup mirrors and bridal dressing area',
+    staticUrl: null,
+  },
+  station_3: {
+    id: 'station_3',
+    label: 'Station 03 — Nail Bar',
+    section: 'Four Stations Scene',
+    aspect: '3/4',
+    width: 750,
+    height: 1000,
+    mask: 'arch',
+    illustration: 'hand-with-nails',
+    room: 'nails',
+    defaultAlt: 'Station 03: Nail bar for gel polish, extensions, and pedicures',
+    staticUrl: null,
+  },
+  station_4: {
+    id: 'station_4',
+    label: 'Station 04 — Skin Room',
+    section: 'Four Stations Scene',
+    aspect: '3/4',
+    width: 750,
+    height: 1000,
+    mask: 'arch',
+    illustration: 'facial-jar-and-leaf',
+    room: 'skin',
+    defaultAlt: 'Station 04: Quiet facial and skin treatment room',
+    staticUrl: null,
+  },
+  services_hero: {
+    id: 'services_hero',
+    label: 'Services Page Hero',
+    section: 'Page Heroes',
+    aspect: '16/9',
+    width: 1280,
+    height: 720,
+    mask: 'capsule',
+    illustration: 'comb-and-scissors',
+    room: 'hair',
+    defaultAlt: 'Bbold Salon & Academy full service menu',
+    staticUrl: null,
+  },
+  team_hero: {
+    id: 'team_hero',
+    label: 'Team Page Hero',
+    section: 'Page Heroes',
+    aspect: '16/9',
+    width: 1280,
+    height: 720,
+    mask: 'capsule',
+    illustration: 'profile-updo',
+    room: 'hair',
+    defaultAlt: 'Stylists, artists, and trainers at Bbold Salon & Academy',
+    staticUrl: null,
+  },
+  gallery_hero: {
+    id: 'gallery_hero',
+    label: 'Gallery Page Hero',
+    section: 'Page Heroes',
+    aspect: '16/9',
+    width: 1280,
+    height: 720,
+    mask: 'capsule',
+    illustration: 'profile-long-waves',
+    room: 'makeup',
+    defaultAlt: 'Client work and studio lookbook at Bbold Mumbai',
+    staticUrl: null,
+  },
+  academy_hero: {
+    id: 'academy_hero',
+    label: 'Academy Page Hero',
+    section: 'Page Heroes',
+    aspect: '16/9',
+    width: 1280,
+    height: 720,
+    mask: 'capsule',
+    illustration: 'salon-chair',
+    room: 'academy',
+    defaultAlt: 'Bbold Academy classroom and floor training in Mumbai',
+    staticUrl: null,
+  },
+  academy_class: {
+    id: 'academy_class',
+    label: 'Academy Classroom Feature',
+    section: 'Academy Page',
+    aspect: '4/3',
+    width: 960,
+    height: 720,
+    mask: 'rounded',
+    illustration: 'makeup-brushes',
+    room: 'academy',
+    defaultAlt: 'Hands-on training session at Bbold Academy',
+    staticUrl: null,
+  },
+  bridal_hero: {
+    id: 'bridal_hero',
+    label: 'Bridal Page Hero',
+    section: 'Page Heroes',
+    aspect: '3/4',
+    width: 750,
+    height: 1000,
+    mask: 'arch',
+    illustration: 'bridal-veil-and-flowers',
+    room: 'makeup',
+    defaultAlt: 'Bridal makeup, hair, and wedding preparation at Bbold',
+    staticUrl: null,
+  },
+  about_story: {
+    id: 'about_story',
+    label: 'About Page — Studio Story',
+    section: 'About Page',
+    aspect: '4/5',
+    width: 800,
+    height: 1000,
+    mask: 'arch',
+    illustration: 'salon-chair',
+    room: 'hair',
+    defaultAlt: 'Inside Bbold Salon & Academy in Mumbai',
+    staticUrl: null,
+  },
+  about_space_1: {
+    id: 'about_space_1',
+    label: 'About Space 01 — Styling Floor',
+    section: 'About Page',
+    aspect: '4/3',
+    width: 800,
+    height: 600,
+    mask: 'rounded',
+    illustration: 'hair-dryer',
+    room: 'hair',
+    defaultAlt: 'Main styling floor at Bbold Salon & Academy',
+    staticUrl: null,
+  },
+  about_space_2: {
+    id: 'about_space_2',
+    label: 'About Space 02 — Nail & Makeup Bar',
+    section: 'About Page',
+    aspect: '4/3',
+    width: 800,
+    height: 600,
+    mask: 'rounded',
+    illustration: 'nail-polish-bottles',
+    room: 'nails',
+    defaultAlt: 'Nail bar and makeup stations at Bbold',
+    staticUrl: null,
+  },
+  about_space_3: {
+    id: 'about_space_3',
+    label: 'About Space 03 — Skin & Academy Room',
+    section: 'About Page',
+    aspect: '4/3',
+    width: 800,
+    height: 600,
+    mask: 'rounded',
+    illustration: 'facial-jar-and-leaf',
+    room: 'skin',
+    defaultAlt: 'Private skin room and training studio at Bbold',
+    staticUrl: null,
+  },
+  contact_hero: {
+    id: 'contact_hero',
+    label: 'Contact Page Hero',
+    section: 'Page Heroes',
+    aspect: '16/9',
+    width: 1280,
+    height: 720,
+    mask: 'capsule',
+    illustration: 'salon-chair',
+    room: 'hair',
+    defaultAlt: 'Visit or contact Bbold Salon & Academy in Mumbai',
+    staticUrl: null,
+  },
+  cta_band: {
+    id: 'cta_band',
+    label: 'Booking CTA Band Feature',
+    section: 'Homepage CTA',
+    aspect: '16/9',
+    width: 1280,
+    height: 720,
+    mask: 'capsule',
+    illustration: 'comb-and-scissors',
+    room: 'hair',
+    defaultAlt: 'Reserve your chair at Bbold Salon & Academy',
+    staticUrl: null,
+  },
+  og_image: {
+    id: 'og_image',
+    label: 'Social Share Card (OpenGraph)',
+    section: 'SEO & Social',
+    aspect: '1200/630',
+    width: 1200,
+    height: 630,
+    mask: 'none',
+    illustration: 'comb-and-scissors',
+    room: 'hair',
+    defaultAlt: 'Bbold Salon & Academy — Hair, Makeup, Nails, Skin & Academy in Mumbai',
+    staticUrl: null,
+  },
+};
+
+export const IMAGE_SLOT_LIST: ImageSlotConfig[] = Object.values(IMAGE_SLOTS);
+
+export function getCategoryImageSlot(category: string): ImageSlotId {
+  const c = category.toLowerCase();
+  if (c.includes('men')) return 'cat_men';
+  if (c.includes('colour') || c.includes('color')) return 'cat_colour';
+  if (c.includes('treatment')) return 'cat_treatments';
+  if (c.includes('bridal')) return 'cat_bridal';
+  if (c.includes('makeup')) return 'cat_makeup';
+  if (c.includes('nail')) return 'cat_nails';
+  if (c.includes('wax') || c.includes('thread')) return 'cat_waxing';
+  if (c.includes('skin')) return 'cat_skin';
+  return 'cat_hair';
+}

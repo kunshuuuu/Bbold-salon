@@ -1,0 +1,250 @@
+@import "tailwindcss";
+
+:root {
+  /* Public Design System Colours */
+  --paper: #F5F0E8;
+  --powder: #E9DDD0;
+  --blush: #F2C9C0;
+  --ink: #15110F;
+  --crimson: #C4262E;
+  --marigold: #E8A317;
+  --sage: #9AAA94;
+  --white-edge: #FFFFFF;
+
+  /* Default Room Context (Hair / Crimson) */
+  --room: #C4262E;
+  --room-ink: #FFFFFF;
+  --room-tint: rgba(196, 38, 46, 0.14);
+
+  /* Motion Easing Tokens */
+  --ease-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-inout: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-wipe: cubic-bezier(0.76, 0, 0.24, 1);
+
+  /* Z-index Scale */
+  --z-content: 0;
+  --z-header: 100;
+  --z-drawer: 200;
+  --z-menu: 300;
+  --z-transition: 400;
+  --z-preloader: 500;
+  --z-cursor: 900;
+
+  /* Admin Dashboard Tokens */
+  --bg: #F6F4F0;
+  --surface: #FFFFFF;
+  --border: #E6E2DB;
+  --text: #15110F;
+  --muted: #6B6560;
+  --primary: #C4262E;
+  --success: #1E7B4F;
+  --warning: #B7791F;
+  --danger: #B3261E;
+  --info: #2F5D8A;
+
+  /* Font Stacks */
+  --font-display: "Bricolage Grotesque", sans-serif;
+  --font-sans: "DM Sans", sans-serif;
+  --font-mono: "DM Mono", monospace;
+}
+
+/* Room Colour Switching */
+[data-room="hair"],
+[data-room="neutral"] {
+  --room: #C4262E;
+  --room-ink: #FFFFFF;
+  --room-tint: rgba(196, 38, 46, 0.14);
+}
+
+[data-room="makeup"] {
+  --room: #F2C9C0;
+  --room-ink: #15110F;
+  --room-tint: rgba(242, 201, 192, 0.32);
+}
+
+[data-room="nails"] {
+  --room: #E8A317;
+  --room-ink: #15110F;
+  --room-tint: rgba(232, 163, 23, 0.22);
+}
+
+[data-room="skin"] {
+  --room: #9AAA94;
+  --room-ink: #15110F;
+  --room-tint: rgba(154, 170, 148, 0.28);
+}
+
+[data-room="academy"] {
+  --room: #15110F;
+  --room-ink: #F5F0E8;
+  --room-tint: rgba(21, 17, 15, 0.14);
+}
+
+/* Base Typography */
+body {
+  font-family: var(--font-sans);
+  background-color: var(--paper);
+  color: var(--ink);
+  font-size: 16px;
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+.font-sans {
+  font-family: var(--font-sans);
+}
+
+.font-mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Fluid Editorial Display Scale */
+.text-hero-h1 {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(3.5rem, 9vw, 9rem);
+  line-height: 0.92;
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+}
+
+.text-section-h2 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(2.25rem, 5vw, 4.5rem);
+  line-height: 0.98;
+  letter-spacing: -0.025em;
+  text-wrap: balance;
+}
+
+.text-mono-label {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.4;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Outlined Display Words (1.5px stroke) */
+.text-outline-ink {
+  color: transparent;
+  -webkit-text-stroke: 1.5px var(--ink);
+}
+
+.text-outline-paper {
+  color: transparent;
+  -webkit-text-stroke: 1.5px var(--paper);
+}
+
+.text-outline-crimson {
+  color: transparent;
+  -webkit-text-stroke: 1.5px var(--crimson);
+}
+
+/* Section Padding Token */
+.section-pad {
+  padding-top: clamp(56px, 8vw, 120px);
+  padding-bottom: clamp(56px, 8vw, 120px);
+}
+
+/* Allowed Soft Editorial Shadow */
+.shadow-editorial {
+  box-shadow: 0 14px 36px rgba(21, 17, 15, 0.14);
+}
+
+/* Die-cut Sticker Style (4px paper/white-edge outline + slight shadow) */
+.sticker-diecut {
+  filter: drop-shadow(0 6px 16px rgba(21, 17, 15, 0.14));
+}
+
+/* Image Masks */
+.mask-capsule {
+  border-radius: 9999px;
+}
+
+.mask-arch {
+  border-radius: 9999px 9999px 28px 28px;
+}
+
+.mask-oval {
+  border-radius: 50%;
+}
+
+.mask-circle {
+  border-radius: 9999px;
+}
+
+.mask-rounded {
+  border-radius: 28px;
+}
+
+/* Perforated Ticket Edge Helpers */
+.ticket-perforated-top {
+  background-image: radial-gradient(circle at 10px 0, var(--paper) 6px, transparent 6.5px);
+  background-size: 24px 12px;
+  background-repeat: repeat-x;
+}
+
+/* Visible Focus Ring */
+:focus-visible {
+  outline: 2px solid var(--room, #C4262E);
+  outline-offset: 2px;
+}
+
+/* Continuous Marquee & Circular Sticker Keyframes */
+@keyframes bbold-single-marquee-rtl {
+  0% {
+    transform: translate3d(0%, 0, 0);
+  }
+  100% {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+@keyframes bbold-circular-spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-bbold-marquee {
+  animation: bbold-single-marquee-rtl 26s linear infinite !important;
+  will-change: transform;
+}
+
+.animate-bbold-spin {
+  animation: bbold-circular-spin 9s linear infinite !important;
+  will-change: transform;
+}
+
+/* Hide native scrollbar while preserving programmatic/button scrolling */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+/* Print Price List Stylesheet */
+@media print {
+  body {
+    background: #FFFFFF !important;
+    color: #15110F !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+}
+
