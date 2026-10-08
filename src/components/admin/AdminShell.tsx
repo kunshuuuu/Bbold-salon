@@ -146,7 +146,7 @@ export const AdminShell: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="h-[100dvh] w-full bg-[#F6F4F0] text-[#15110F] flex items-center justify-center font-sans text-sm">
+      <div className="h-[100dvh] w-full dot-bg bg-[#F6F4F0] text-[#15110F] flex items-center justify-center font-sans text-sm">
         Checking administrator access...
       </div>
     );
@@ -232,7 +232,7 @@ export const AdminShell: React.FC = () => {
   );
 
   return (
-    <div className="h-[100dvh] w-full overflow-hidden bg-[#F6F4F0] text-[#15110F] font-sans grid grid-cols-1 lg:grid-cols-[264px_minmax(0,1fr)]">
+    <div className="h-[100dvh] w-full overflow-hidden dot-bg bg-[#F6F4F0] text-[#15110F] font-sans grid grid-cols-1 lg:grid-cols-[264px_minmax(0,1fr)]">
       <Helmet>
         <title>{topbarTitle} — Bbold Admin</title>
         <meta name="robots" content="noindex,nofollow" />

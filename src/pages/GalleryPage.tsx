@@ -27,13 +27,18 @@ export const GalleryPage: React.FC = () => {
 
   useEffect(() => {
     let mounted = true;
-    getPublicGalleryItems().then((rows) => {
-      if (!mounted) return;
-      setItems(rows);
-      setLoading(false);
-    });
+    const loadGallery = () => {
+      getPublicGalleryItems().then((rows) => {
+        if (!mounted) return;
+        setItems(rows);
+        setLoading(false);
+      });
+    };
+    loadGallery();
+    window.addEventListener('bbold-sample-toggle', loadGallery);
     return () => {
       mounted = false;
+      window.removeEventListener('bbold-sample-toggle', loadGallery);
     };
   }, []);
 
@@ -156,7 +161,7 @@ export const GalleryPage: React.FC = () => {
           Loading gallery...
         </div>
       ) : filtered.length === 0 ? (
-        <div className="py-16 text-center space-y-3 bg-[#E9DDD0]/35 rounded-3xl border border-[#15110F]/10">
+        <div className="py-16 text-center space-y-3 bg-[#E9DDD0] rounded-3xl border border-[#15110F]/10">
           <p className="font-display text-xl font-bold text-[#15110F]">
             No gallery items match this filter.
           </p>
@@ -186,7 +191,7 @@ export const GalleryPage: React.FC = () => {
                 key={item.id}
                 onClick={() => setLightboxIdx(idx)}
                 data-cursor="view"
-                className={`${colSpan} group cursor-pointer rounded-3xl bg-[#E9DDD0]/50 border border-[#15110F]/15 p-3.5 flex flex-col justify-between shadow-sm hover:shadow-md transition-all`}
+                className={`${colSpan} group cursor-pointer rounded-3xl bg-[#E9DDD0] border border-[#15110F]/15 p-3.5 flex flex-col justify-between shadow-sm hover:shadow-md transition-all`}
               >
                 <div className="relative">
                   <Img

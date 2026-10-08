@@ -110,7 +110,7 @@ export const TestimonialsPage: React.FC = () => {
       {/* Section 2: Filter Bar */}
       {reviews.length >= 3 && (
         <section className="pb-10 border-b-[2.5px] border-[#15110F]">
-          <div className="p-6 sm:p-8 rounded-3xl bg-[#E9DDD0]/70 border-2 border-[#15110F] shadow-[4px_4px_0px_#15110F] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+          <div className="p-6 sm:p-8 rounded-3xl bg-[#E9DDD0] border-2 border-[#15110F] shadow-[4px_4px_0px_#15110F] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-1 text-[#E8A317]">
                 {Array.from({ length: 5 }).map((_, i) => (
@@ -338,7 +338,7 @@ export const AboutPage: React.FC = () => {
               </div>
               <h1 className="font-display font-black text-[clamp(2.4rem,5vw,4.5rem)] leading-[1.02] tracking-tight text-[#15110F]">
                 Craft, Conversation &amp;{' '}
-                <span className="text-[#C4262E] [-webkit-text-stroke:1.2px_#15110F] drop-shadow-[3px_3px_0px_#15110F]">
+                <span className="text-[#C4262E] text-stroke-shadow-md">
                   Clean Technique
                 </span>{' '}
                 in Mumbai.
@@ -430,7 +430,7 @@ export const AboutPage: React.FC = () => {
       {/* =====================================================================
           SECTION 3: OUR 4-PILLAR STUDIO PHILOSOPHY (With Dark Black Bottom Border)
          ===================================================================== */}
-      <section className="py-16 lg:py-24 bg-[#E9DDD0]/55 border-b-[2.5px] border-[#15110F]">
+      <section className="py-16 lg:py-24 bg-transparent border-b-[2.5px] border-[#15110F]">
         <div className="max-w-[1440px] mx-auto px-4 sm:px-8 space-y-12">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b-[2.5px] border-[#15110F] pb-6">
             <div>
@@ -501,7 +501,7 @@ export const AboutPage: React.FC = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="p-5 rounded-3xl bg-[#E9DDD0]/70 border-2 border-[#15110F] shadow-[5px_5px_0px_#15110F] space-y-4 flex flex-col justify-between">
+            <div className="p-5 rounded-3xl bg-[#E9DDD0] border-2 border-[#15110F] shadow-[5px_5px_0px_#15110F] space-y-4 flex flex-col justify-between">
               <div className="space-y-4">
                 <Img
                   slot="about_space_1"
@@ -532,7 +532,7 @@ export const AboutPage: React.FC = () => {
               </Link>
             </div>
 
-            <div className="p-5 rounded-3xl bg-[#E9DDD0]/70 border-2 border-[#15110F] shadow-[5px_5px_0px_#15110F] space-y-4 flex flex-col justify-between">
+            <div className="p-5 rounded-3xl bg-[#E9DDD0] border-2 border-[#15110F] shadow-[5px_5px_0px_#15110F] space-y-4 flex flex-col justify-between">
               <div className="space-y-4">
                 <Img
                   slot="about_space_2"
@@ -563,7 +563,7 @@ export const AboutPage: React.FC = () => {
               </Link>
             </div>
 
-            <div className="p-5 rounded-3xl bg-[#E9DDD0]/70 border-2 border-[#15110F] shadow-[5px_5px_0px_#15110F] space-y-4 flex flex-col justify-between">
+            <div className="p-5 rounded-3xl bg-[#E9DDD0] border-2 border-[#15110F] shadow-[5px_5px_0px_#15110F] space-y-4 flex flex-col justify-between">
               <div className="space-y-4">
                 <Img
                   slot="about_space_3"
@@ -639,7 +639,7 @@ export const AboutPage: React.FC = () => {
          ===================================================================== */}
       <section className="py-16 lg:py-24 border-b-[2.5px] border-[#15110F]">
         <div className="max-w-[1440px] mx-auto px-4 sm:px-8 space-y-12">
-          <div className="p-8 sm:p-12 rounded-3xl bg-[#9AAA94]/35 border-2 border-[#15110F] shadow-[6px_6px_0px_#15110F] grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+          <div className="p-8 sm:p-12 rounded-3xl bg-[#D7DFD4] border-2 border-[#15110F] shadow-[6px_6px_0px_#15110F] grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
             <div className="lg:col-span-8 space-y-4">
               <div className="flex flex-wrap items-center gap-3">
                 <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#F5F0E8] border-2 border-[#15110F] font-mono text-xs font-bold uppercase tracking-widest text-[#15110F]">
@@ -694,7 +694,7 @@ export const AboutPage: React.FC = () => {
             <DieCutSticker variant="stamp" rotate={6} />
             <DieCutSticker variant="lipstick" rotate={-3} />
           </div>
-          <h2 className="font-display font-black text-3xl sm:text-5xl text-[#F5F0E8] [-webkit-text-stroke:1.2px_#15110F] drop-shadow-[4px_4px_0px_#15110F] max-w-3xl mx-auto">
+          <h2 className="font-display font-black text-3xl sm:text-5xl text-[#F5F0E8] text-stroke-shadow-md max-w-3xl mx-auto">
             Experience the Bbold difference in person.
           </h2>
           <p className="text-base sm:text-lg text-[#F5F0E8]/90 max-w-xl mx-auto">
@@ -780,7 +780,7 @@ export const ContactPage: React.FC = () => {
         {/* Left 5 Columns: Direct Contact + Live Business Hours + Map Card */}
         <div className="lg:col-span-5 space-y-8">
           {/* Contact Details Card */}
-          <div className="p-6 sm:p-8 rounded-3xl bg-[#E9DDD0]/70 border-2 border-[#15110F] shadow-[4px_4px_0px_#15110F] space-y-5">
+          <div className="p-6 sm:p-8 rounded-3xl bg-[#E9DDD0] border-2 border-[#15110F] shadow-[4px_4px_0px_#15110F] space-y-5">
             <div className="flex items-center justify-between">
               <h2 className="font-display text-2xl font-bold text-[#15110F]">
                 Studio Desk
@@ -886,7 +886,7 @@ export const ContactPage: React.FC = () => {
           </div>
 
           {/* Styled Address Card with Google Maps Link */}
-          <div className="p-6 rounded-3xl bg-[#E9DDD0]/70 border-2 border-[#15110F] shadow-[4px_4px_0px_#15110F] flex items-center justify-between gap-4">
+          <div className="p-6 rounded-3xl bg-[#E9DDD0] border-2 border-[#15110F] shadow-[4px_4px_0px_#15110F] flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <Illustration name="salon-chair" className="w-16 h-16 shrink-0" />
               <div>
@@ -1010,7 +1010,7 @@ export const FaqPage: React.FC = () => {
                 return (
                   <div
                     key={item.id}
-                    className="rounded-2xl bg-[#E9DDD0]/60 border-2 border-[#15110F] shadow-[3px_3px_0px_#15110F] overflow-hidden"
+                    className="rounded-2xl bg-[#E9DDD0] border-2 border-[#15110F] shadow-[3px_3px_0px_#15110F] overflow-hidden"
                   >
                     <button
                       type="button"
@@ -1093,7 +1093,7 @@ export const LegalPage: React.FC<{ mode: 'privacy' | 'terms' }> = ({ mode }) => 
         <DieCutSticker variant="scissors" rotate={-4} />
       </div>
 
-      <div className="p-8 rounded-3xl bg-[#E9DDD0]/50 border-2 border-[#15110F] shadow-[4px_4px_0px_#15110F] prose prose-neutral max-w-none text-base text-[#15110F]/90 leading-relaxed whitespace-pre-line">
+      <div className="p-8 rounded-3xl bg-[#E9DDD0] border-2 border-[#15110F] shadow-[4px_4px_0px_#15110F] prose prose-neutral max-w-none text-base text-[#15110F]/90 leading-relaxed whitespace-pre-line">
         {body}
       </div>
     </div>

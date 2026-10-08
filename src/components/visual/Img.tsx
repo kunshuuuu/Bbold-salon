@@ -57,6 +57,7 @@ export const Img: React.FC<ImgProps> = ({
   const { siteImages } = useSiteData();
   const [isLoaded, setIsLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
+  const imgRef = React.useRef<HTMLImageElement | null>(null);
 
   const slotConfig = slot ? IMAGE_SLOTS[slot] : undefined;
   const dbRow = slot ? siteImages[slot] : undefined;
@@ -65,6 +66,15 @@ export const Img: React.FC<ImgProps> = ({
     src !== undefined
       ? src
       : dbRow?.image_url || slotConfig?.staticUrl || null;
+
+  React.useEffect(() => {
+    setHasError(false);
+    if (imgRef.current && imgRef.current.complete && imgRef.current.naturalWidth > 0) {
+      setIsLoaded(true);
+    } else {
+      setIsLoaded(false);
+    }
+  }, [resolvedUrl]);
 
   const resolvedAlt =
     alt ||
@@ -96,6 +106,7 @@ export const Img: React.FC<ImgProps> = ({
             }`}
           />
           <img
+            ref={imgRef}
             src={resolvedUrl!}
             alt={resolvedAlt}
             width={resolvedWidth}

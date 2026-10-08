@@ -8,6 +8,7 @@ import {
   startOfDay,
 } from 'date-fns';
 import { WEEKDAY_NAMES } from '../config/site';
+import { getUniversalValue, pushKeyToUniversalServer } from './universalStore';
 import type {
   Appointment,
   BlockedDate,
@@ -504,20 +505,14 @@ const LOCAL_BUSINESS_HOURS_KEY = 'bbold_local_business_hours_v1';
 const LOCAL_SALON_SETTINGS_KEY = 'bbold_local_salon_settings_v1';
 
 export function getLocalAppointments(): Appointment[] {
-  if (typeof window === 'undefined') return [];
-  try {
-    const raw = window.localStorage.getItem(LOCAL_APPOINTMENTS_KEY);
-    if (!raw) return [];
-    return JSON.parse(raw) as Appointment[];
-  } catch {
-    return [];
-  }
+  return getUniversalValue<Appointment[]>(LOCAL_APPOINTMENTS_KEY, []);
 }
 
 export function saveLocalAppointments(appts: Appointment[]): void {
-  if (typeof window === 'undefined') return;
-  window.localStorage.setItem(LOCAL_APPOINTMENTS_KEY, JSON.stringify(appts));
-  window.dispatchEvent(new CustomEvent('bbold-appointments-updated'));
+  void pushKeyToUniversalServer(LOCAL_APPOINTMENTS_KEY, appts);
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('bbold-appointments-updated'));
+  }
 }
 
 export function getLocalBusySlotsForDate(dateStr: string): BusySlot[] {
@@ -531,48 +526,27 @@ export function getLocalBusySlotsForDate(dateStr: string): BusySlot[] {
 }
 
 export function getLocalBlockedDates(): BlockedDate[] {
-  if (typeof window === 'undefined') return [];
-  try {
-    const raw = window.localStorage.getItem(LOCAL_BLOCKED_DATES_KEY);
-    return raw ? (JSON.parse(raw) as BlockedDate[]) : [];
-  } catch {
-    return [];
-  }
+  return getUniversalValue<BlockedDate[]>(LOCAL_BLOCKED_DATES_KEY, []);
 }
 
 export function saveLocalBlockedDates(rows: BlockedDate[]): void {
-  if (typeof window === 'undefined') return;
-  window.localStorage.setItem(LOCAL_BLOCKED_DATES_KEY, JSON.stringify(rows));
+  void pushKeyToUniversalServer(LOCAL_BLOCKED_DATES_KEY, rows);
 }
 
 export function getLocalBusinessHours(fallback: BusinessHour[]): BusinessHour[] {
-  if (typeof window === 'undefined') return fallback;
-  try {
-    const raw = window.localStorage.getItem(LOCAL_BUSINESS_HOURS_KEY);
-    return raw ? (JSON.parse(raw) as BusinessHour[]) : fallback;
-  } catch {
-    return fallback;
-  }
+  return getUniversalValue<BusinessHour[]>(LOCAL_BUSINESS_HOURS_KEY, fallback);
 }
 
 export function saveLocalBusinessHours(rows: BusinessHour[]): void {
-  if (typeof window === 'undefined') return;
-  window.localStorage.setItem(LOCAL_BUSINESS_HOURS_KEY, JSON.stringify(rows));
+  void pushKeyToUniversalServer(LOCAL_BUSINESS_HOURS_KEY, rows);
 }
 
 export function getLocalSalonSettings(fallback: SalonSettings): SalonSettings {
-  if (typeof window === 'undefined') return fallback;
-  try {
-    const raw = window.localStorage.getItem(LOCAL_SALON_SETTINGS_KEY);
-    return raw ? (JSON.parse(raw) as SalonSettings) : fallback;
-  } catch {
-    return fallback;
-  }
+  return getUniversalValue<SalonSettings>(LOCAL_SALON_SETTINGS_KEY, fallback);
 }
 
 export function saveLocalSalonSettings(settings: SalonSettings): void {
-  if (typeof window === 'undefined') return;
-  window.localStorage.setItem(LOCAL_SALON_SETTINGS_KEY, JSON.stringify(settings));
+  void pushKeyToUniversalServer(LOCAL_SALON_SETTINGS_KEY, settings);
 }
 
 /**

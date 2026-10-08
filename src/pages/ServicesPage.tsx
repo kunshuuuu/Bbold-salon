@@ -121,7 +121,7 @@ export const ServicesPage: React.FC = () => {
       </div>
 
       {/* Sticky Sub-Nav Filter Bar */}
-      <div className="sticky top-16 z-30 py-4 my-6 bg-[#F5F0E8]/95 backdrop-blur-md border-b-[2.5px] border-[#15110F] flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4 no-print">
+      <div className="sticky top-16 z-30 py-4 my-6 bg-[#F5F0E8] border-b-[2.5px] border-[#15110F] flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4 no-print">
         {/* Category Pills */}
         <div className="flex items-center gap-2 overflow-x-auto pb-1 lg:pb-0">
           {CATEGORIES.map((cat) => {
@@ -195,7 +195,7 @@ export const ServicesPage: React.FC = () => {
           Loading salon menu...
         </div>
       ) : groupedByCategory.length === 0 ? (
-        <div className="py-16 text-center space-y-3 bg-[#E9DDD0]/35 rounded-3xl border border-[#15110F]/10">
+        <div className="py-16 text-center space-y-3 bg-[#E9DDD0] rounded-3xl border border-[#15110F]/10">
           <p className="font-display text-xl font-bold text-[#15110F]">
             No services match your current filter.
           </p>
@@ -282,7 +282,7 @@ export const ServicesPage: React.FC = () => {
       <CutLine className="my-12 no-print" />
 
       {/* Bottom Consultation Callout */}
-      <div className="p-8 sm:p-10 rounded-3xl bg-[#E9DDD0]/70 border border-[#15110F]/15 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 no-print">
+      <div className="p-8 sm:p-10 rounded-3xl bg-[#E9DDD0] border border-[#15110F]/15 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 no-print">
         <div className="space-y-2">
           <div className="font-mono text-xs uppercase tracking-widest text-[#C4262E]">
             Complimentary Texture &amp; Tone Check

@@ -46,6 +46,16 @@
   --font-display: "Bricolage Grotesque", sans-serif;
   --font-sans: "DM Sans", sans-serif;
   --font-mono: "DM Mono", monospace;
+
+  /* Subtle Dotted-Grid Texture Tokens */
+  --dot-color: rgba(0, 0, 0, 0.12);
+  --dot-size: 24px;
+}
+
+/* Reusable Subtle Dotted-Grid Background Utility */
+.dot-bg {
+  background-image: radial-gradient(var(--dot-color) 1px, transparent 1px);
+  background-size: var(--dot-size) var(--dot-size);
 }
 
 /* Room Colour Switching */
@@ -84,6 +94,8 @@
 body {
   font-family: var(--font-sans);
   background-color: var(--paper);
+  background-image: radial-gradient(var(--dot-color) 1px, transparent 1px);
+  background-size: var(--dot-size) var(--dot-size);
   color: var(--ink);
   font-size: 16px;
   line-height: 1.6;
@@ -131,19 +143,69 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
-/* Outlined Display Words (1.5px stroke) */
+/* Outlined Display Words (clean outer border + offset shadow without internal variable-font contour artifacts) */
+.text-stroke-shadow-lg {
+  -webkit-text-stroke: 0px transparent;
+  paint-order: stroke fill;
+  text-shadow:
+    -1.5px -1.5px 0 var(--ink),
+     1.5px -1.5px 0 var(--ink),
+    -1.5px  1.5px 0 var(--ink),
+     1.5px  1.5px 0 var(--ink),
+     0px   -1.5px 0 var(--ink),
+     0px    1.5px 0 var(--ink),
+    -1.5px  0px   0 var(--ink),
+     1.5px  0px   0 var(--ink),
+     3px    3px   0 var(--ink),
+     4.5px  4.5px 0 var(--ink);
+}
+
+.text-stroke-shadow-md {
+  -webkit-text-stroke: 0px transparent;
+  paint-order: stroke fill;
+  text-shadow:
+    -1.25px -1.25px 0 var(--ink),
+     1.25px -1.25px 0 var(--ink),
+    -1.25px  1.25px 0 var(--ink),
+     1.25px  1.25px 0 var(--ink),
+     0px    -1.25px 0 var(--ink),
+     0px     1.25px 0 var(--ink),
+    -1.25px  0px    0 var(--ink),
+     1.25px  0px    0 var(--ink),
+     2.5px   2.5px  0 var(--ink),
+     3.5px   3.5px  0 var(--ink);
+}
+
+.text-stroke-shadow-sm {
+  -webkit-text-stroke: 0px transparent;
+  paint-order: stroke fill;
+  text-shadow:
+    -1px -1px 0 var(--ink),
+     1px -1px 0 var(--ink),
+    -1px  1px 0 var(--ink),
+     1px  1px 0 var(--ink),
+     0px -1px 0 var(--ink),
+     0px  1px 0 var(--ink),
+    -1px  0px 0 var(--ink),
+     1px  0px 0 var(--ink),
+     2px  2px 0 var(--ink);
+}
+
 .text-outline-ink {
   color: transparent;
+  paint-order: stroke fill;
   -webkit-text-stroke: 1.5px var(--ink);
 }
 
 .text-outline-paper {
   color: transparent;
+  paint-order: stroke fill;
   -webkit-text-stroke: 1.5px var(--paper);
 }
 
 .text-outline-crimson {
   color: transparent;
+  paint-order: stroke fill;
   -webkit-text-stroke: 1.5px var(--crimson);
 }
 

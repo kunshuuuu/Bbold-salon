@@ -472,7 +472,7 @@ export const BookPage: React.FC = () => {
   }, [dayAvailability.slots]);
 
   return (
-    <div data-room={activeRoom} className="min-h-screen bg-[#F5F0E8] text-[#15110F] pb-28 lg:pb-16">
+    <div data-room={activeRoom} className="min-h-screen bg-transparent text-[#15110F] pb-28 lg:pb-16">
       <Helmet>
         <title>Reserve Your Appointment — {SITE_CONFIG.brandName}</title>
         <meta
@@ -482,7 +482,7 @@ export const BookPage: React.FC = () => {
       </Helmet>
 
       {/* Clean, predictable top bar for /book */}
-      <header className="sticky top-0 z-[100] h-[72px] bg-[#F5F0E8]/95 border-b border-[#15110F]/10 px-6 md:px-12 flex items-center justify-between">
+      <header className="sticky top-0 z-[100] h-[72px] bg-[#F5F0E8] border-b border-[#15110F]/10 px-6 md:px-12 flex items-center justify-between">
         <Link
           to="/"
           className="font-display font-extrabold text-2xl tracking-tight text-[#15110F]"
@@ -828,7 +828,7 @@ export const BookPage: React.FC = () => {
                                 className={`w-full text-left p-5 rounded-[22px] border transition-all cursor-pointer flex items-start justify-between gap-4 ${
                                   isSelected
                                     ? 'bg-[#FFFFFF] border-[#C4262E] ring-2 ring-[#C4262E]/20 shadow-editorial'
-                                    : 'bg-[#FFFFFF]/80 border-[#15110F]/10 hover:border-[#15110F]/35 hover:bg-[#FFFFFF]'
+                                    : 'bg-[#FFFFFF] border-[#15110F]/10 hover:border-[#15110F]/35'
                                 }`}
                               >
                                 <div className="min-w-0 flex-1">
@@ -877,7 +877,7 @@ export const BookPage: React.FC = () => {
                           className={`w-full text-left p-5 rounded-[24px] border transition-all cursor-pointer flex items-center justify-between gap-4 ${
                             stylistChoice === 'any'
                               ? 'bg-[#FFFFFF] border-[#C4262E] ring-2 ring-[#C4262E]/20 shadow-editorial'
-                              : 'bg-[#FFFFFF]/80 border-[#15110F]/10 hover:border-[#15110F]/35'
+                              : 'bg-[#FFFFFF] border-[#15110F]/10 hover:border-[#15110F]/35'
                           }`}
                         >
                           <div className="flex items-center gap-4">
@@ -913,7 +913,7 @@ export const BookPage: React.FC = () => {
                                 className={`text-left p-5 rounded-[24px] border transition-all cursor-pointer flex items-start gap-4 ${
                                   isSelected
                                     ? 'bg-[#FFFFFF] border-[#C4262E] ring-2 ring-[#C4262E]/20 shadow-editorial'
-                                    : 'bg-[#FFFFFF]/80 border-[#15110F]/10 hover:border-[#15110F]/35'
+                                    : 'bg-[#FFFFFF] border-[#15110F]/10 hover:border-[#15110F]/35'
                                 }`}
                               >
                                 {/* Portrait in a capsule mask */}

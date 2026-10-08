@@ -24,6 +24,11 @@ import {
   saveLocalBusinessHours,
   saveLocalSalonSettings,
 } from './availability';
+import {
+  ensureUniversalStoreSynced,
+  pushKeyToUniversalServer,
+  uploadBlobToUniversalServer,
+} from './universalStore';
 import type {
   Appointment,
   AppointmentStatus,
@@ -78,7 +83,14 @@ export async function resizeAndConvertToWebP(file: File, maxDimension = 1600): P
           if (blob) {
             resolve(blob);
           } else {
-            reject(new Error('Could not encode WebP image'));
+            canvas.toBlob(
+              (jpegBlob) => {
+                if (jpegBlob) resolve(jpegBlob);
+                else reject(new Error('Could not encode image'));
+              },
+              'image/jpeg',
+              0.88
+            );
           }
         },
         'image/webp',
@@ -96,28 +108,39 @@ export async function resizeAndConvertToWebP(file: File, maxDimension = 1600): P
 }
 
 export async function uploadMediaImage(file: File, folder = 'uploads'): Promise<string> {
-  const webpBlob = await resizeAndConvertToWebP(file, 1600);
-
-  if (isSupabaseConfigured()) {
-    const fileName = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.webp`;
-    const { error } = await supabase.storage.from('media').upload(fileName, webpBlob, {
-      contentType: 'image/webp',
-      upsert: true,
-    });
-    if (error) {
-      throw new Error(error.message);
-    }
-    const { data } = supabase.storage.from('media').getPublicUrl(fileName);
-    return data.publicUrl;
+  let processedBlob: Blob;
+  try {
+    processedBlob = await resizeAndConvertToWebP(file, 1600);
+  } catch {
+    processedBlob = file;
   }
 
-  // Local preview fallback: convert WebP blob to data URL
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onloadend = () => resolve(String(reader.result));
-    reader.onerror = () => reject(new Error('Could not read image'));
-    reader.readAsDataURL(webpBlob);
-  });
+  // Always upload to our Universal Cross-Device Server so the image is stored on disk
+  // and immediately accessible on every device (/api/uploads/<folder>/<file>)
+  const universalUrl = await uploadBlobToUniversalServer(processedBlob, folder);
+
+  if (isSupabaseConfigured()) {
+    try {
+      const ext = processedBlob.type.includes('png')
+        ? 'png'
+        : processedBlob.type.includes('jpeg') || processedBlob.type.includes('jpg')
+          ? 'jpg'
+          : 'webp';
+      const fileName = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      const { error } = await supabase.storage.from('media').upload(fileName, processedBlob, {
+        contentType: processedBlob.type || 'image/webp',
+        upsert: true,
+      });
+      if (!error) {
+        const { data } = supabase.storage.from('media').getPublicUrl(fileName);
+        if (data?.publicUrl) return data.publicUrl;
+      }
+    } catch {
+      // Fallback to universalUrl if Supabase storage bucket or RLS is unavailable
+    }
+  }
+
+  return universalUrl;
 }
 
 // =============================================================================
@@ -126,6 +149,7 @@ export async function uploadMediaImage(file: File, folder = 'uploads'): Promise<
 
 export async function adminGetAppointments(): Promise<Appointment[]> {
   if (!isSupabaseConfigured()) {
+    await ensureUniversalStoreSynced();
     return getLocalAppointments().sort((a, b) =>
       `${b.appointment_date} ${b.start_time}`.localeCompare(`${a.appointment_date} ${a.start_time}`)
     );
@@ -269,30 +293,42 @@ export async function adminRenameServiceCategory(oldCat: string, newCat: string)
 // =============================================================================
 
 export async function adminGetStylists(): Promise<Stylist[]> {
+  await ensureUniversalStoreSynced();
+  const localRows = readLocalTable(LOCAL_STORAGE_KEYS.stylists, SAMPLE_STYLISTS)
+    .slice()
+    .sort((a, b) => a.sort_order - b.sort_order);
+
   if (!isSupabaseConfigured()) {
-    return readLocalTable(LOCAL_STORAGE_KEYS.stylists, SAMPLE_STYLISTS)
-      .slice()
-      .sort((a, b) => a.sort_order - b.sort_order);
+    return localRows;
   }
   const { data, error } = await supabase
     .from('stylists')
     .select('*')
     .order('sort_order', { ascending: true });
-  if (error || !data) return readLocalTable(LOCAL_STORAGE_KEYS.stylists, SAMPLE_STYLISTS);
-  return data as Stylist[];
+  if (error || !data || data.length === 0) return localRows;
+  const localMap = new Map(localRows.map((s) => [s.id, s]));
+  return (data as Stylist[]).map((s) => {
+    const localMatch = localMap.get(s.id);
+    if (localMatch && localMatch.photo_url && localMatch.photo_url !== s.photo_url) {
+      return { ...s, ...localMatch };
+    }
+    return s;
+  });
 }
 
 export async function adminUpsertStylist(
   stylist: Partial<Stylist> & { name: string }
 ): Promise<Stylist> {
-  if (!isSupabaseConfigured()) {
-    const all = readLocalTable(LOCAL_STORAGE_KEYS.stylists, SAMPLE_STYLISTS);
-    if (stylist.id) {
-      const updated = all.map((s) => (s.id === stylist.id ? ({ ...s, ...stylist } as Stylist) : s));
-      writeLocalTable(LOCAL_STORAGE_KEYS.stylists, updated);
-      return updated.find((s) => s.id === stylist.id)!;
-    }
-    const created: Stylist = {
+  await ensureUniversalStoreSynced();
+  const all = readLocalTable(LOCAL_STORAGE_KEYS.stylists, SAMPLE_STYLISTS);
+  let savedStylist: Stylist;
+
+  if (stylist.id) {
+    const updated = all.map((s) => (s.id === stylist.id ? ({ ...s, ...stylist } as Stylist) : s));
+    await pushKeyToUniversalServer(LOCAL_STORAGE_KEYS.stylists, updated);
+    savedStylist = updated.find((s) => s.id === stylist.id)!;
+  } else {
+    savedStylist = {
       id: crypto.randomUUID ? crypto.randomUUID() : `sty-${Date.now()}`,
       name: stylist.name,
       title: stylist.title ?? null,
@@ -304,28 +340,34 @@ export async function adminUpsertStylist(
       is_sample: stylist.is_sample ?? false,
       created_at: new Date().toISOString(),
     };
-    writeLocalTable(LOCAL_STORAGE_KEYS.stylists, [...all, created]);
-    return created;
+    const nextList = [...all, savedStylist];
+    await pushKeyToUniversalServer(LOCAL_STORAGE_KEYS.stylists, nextList);
   }
 
-  if (stylist.id) {
-    const { data, error } = await supabase
-      .from('stylists')
-      .update(stylist)
-      .eq('id', stylist.id)
-      .select('*')
-      .single();
-    if (error || !data) throw new Error(error?.message || 'Failed to save stylist');
-    return data as Stylist;
-  } else {
-    const { data, error } = await supabase
-      .from('stylists')
-      .insert(stylist)
-      .select('*')
-      .single();
-    if (error || !data) throw new Error(error?.message || 'Failed to create stylist');
-    return data as Stylist;
+  if (isSupabaseConfigured()) {
+    try {
+      if (stylist.id) {
+        const { data, error } = await supabase
+          .from('stylists')
+          .update(stylist)
+          .eq('id', stylist.id)
+          .select('*')
+          .single();
+        if (!error && data) return data as Stylist;
+      } else {
+        const { data, error } = await supabase
+          .from('stylists')
+          .insert(stylist)
+          .select('*')
+          .single();
+        if (!error && data) return data as Stylist;
+      }
+    } catch {
+      // Fallback to universal server copy
+    }
   }
+
+  return savedStylist;
 }
 
 // =============================================================================
@@ -576,75 +618,98 @@ export async function adminDeleteFaq(id: string): Promise<void> {
 }
 
 export async function adminGetGalleryItems(): Promise<GalleryItem[]> {
+  await ensureUniversalStoreSynced();
+  const localRows = readLocalTable(LOCAL_STORAGE_KEYS.gallery_items, SAMPLE_GALLERY_ITEMS)
+    .slice()
+    .sort((a, b) => {
+      const aReal = Boolean(a.image_url && !a.image_url.startsWith('ILLUSTRATION_'));
+      const bReal = Boolean(b.image_url && !b.image_url.startsWith('ILLUSTRATION_'));
+      if (aReal !== bReal) return aReal ? -1 : 1;
+      return a.sort_order - b.sort_order;
+    });
+
   if (!isSupabaseConfigured()) {
-    return readLocalTable(LOCAL_STORAGE_KEYS.gallery_items, SAMPLE_GALLERY_ITEMS)
-      .slice()
-      .sort((a, b) => a.sort_order - b.sort_order);
+    return localRows;
   }
   const { data, error } = await supabase
     .from('gallery_items')
     .select('*')
     .order('sort_order', { ascending: true });
-  if (error || !data)
-    return readLocalTable(LOCAL_STORAGE_KEYS.gallery_items, SAMPLE_GALLERY_ITEMS);
-  return data as GalleryItem[];
+  if (error || !data || data.length === 0) return localRows;
+  const supaRows = data as GalleryItem[];
+  const supaIds = new Set(supaRows.map((r) => r.id));
+  const extraLocal = localRows.filter((r) => !supaIds.has(r.id) && !r.is_sample);
+  return [...extraLocal, ...supaRows];
 }
 
 export async function adminUpsertGalleryItem(
   item: Partial<GalleryItem>
 ): Promise<GalleryItem> {
-  if (!isSupabaseConfigured()) {
-    const all = readLocalTable(LOCAL_STORAGE_KEYS.gallery_items, SAMPLE_GALLERY_ITEMS);
-    if (item.id) {
-      const updated = all.map((g) => (g.id === item.id ? ({ ...g, ...item } as GalleryItem) : g));
-      writeLocalTable(LOCAL_STORAGE_KEYS.gallery_items, updated);
-      return updated.find((g) => g.id === item.id)!;
-    }
-    const created: GalleryItem = {
+  await ensureUniversalStoreSynced();
+  const all = readLocalTable(LOCAL_STORAGE_KEYS.gallery_items, SAMPLE_GALLERY_ITEMS);
+  let savedItem: GalleryItem;
+
+  if (item.id) {
+    const updated = all.map((g) => (g.id === item.id ? ({ ...g, ...item } as GalleryItem) : g));
+    await pushKeyToUniversalServer(LOCAL_STORAGE_KEYS.gallery_items, updated);
+    savedItem = updated.find((g) => g.id === item.id)!;
+  } else {
+    const minOrder = all.reduce((min, g) => Math.min(min, g.sort_order ?? 1), 1);
+    savedItem = {
       id: crypto.randomUUID ? crypto.randomUUID() : `gal-${Date.now()}`,
       image_url: item.image_url ?? null,
       before_image_url: item.before_image_url ?? null,
-      caption: item.caption ?? '',
+      caption: item.caption?.trim() || 'Salon Lookbook',
       category: item.category ?? 'Hair',
-      sort_order: item.sort_order ?? all.length + 1,
+      sort_order: item.sort_order ?? Math.max(0, minOrder - 1),
       is_active: item.is_active ?? true,
       is_sample: item.is_sample ?? false,
       created_at: new Date().toISOString(),
     };
-    writeLocalTable(LOCAL_STORAGE_KEYS.gallery_items, [...all, created]);
-    return created;
+    const nextList = [savedItem, ...all];
+    await pushKeyToUniversalServer(LOCAL_STORAGE_KEYS.gallery_items, nextList);
   }
 
-  if (item.id) {
-    const { data, error } = await supabase
-      .from('gallery_items')
-      .update(item)
-      .eq('id', item.id)
-      .select('*')
-      .single();
-    if (error || !data) throw new Error(error?.message || 'Failed to save gallery item');
-    return data as GalleryItem;
-  } else {
-    const { data, error } = await supabase
-      .from('gallery_items')
-      .insert(item)
-      .select('*')
-      .single();
-    if (error || !data) throw new Error(error?.message || 'Failed to create gallery item');
-    return data as GalleryItem;
+  if (isSupabaseConfigured()) {
+    try {
+      if (item.id) {
+        const { data, error } = await supabase
+          .from('gallery_items')
+          .update(item)
+          .eq('id', item.id)
+          .select('*')
+          .single();
+        if (!error && data) return data as GalleryItem;
+      } else {
+        const { data, error } = await supabase
+          .from('gallery_items')
+          .insert(savedItem)
+          .select('*')
+          .single();
+        if (!error && data) return data as GalleryItem;
+      }
+    } catch {
+      // Fallback to universal server copy
+    }
   }
+
+  return savedItem;
 }
 
 export async function adminDeleteGalleryItem(id: string): Promise<void> {
-  if (!isSupabaseConfigured()) {
-    const all = readLocalTable(LOCAL_STORAGE_KEYS.gallery_items, SAMPLE_GALLERY_ITEMS).filter(
-      (g) => g.id !== id
-    );
-    writeLocalTable(LOCAL_STORAGE_KEYS.gallery_items, all);
-    return;
+  await ensureUniversalStoreSynced();
+  const all = readLocalTable(LOCAL_STORAGE_KEYS.gallery_items, SAMPLE_GALLERY_ITEMS).filter(
+    (g) => g.id !== id
+  );
+  await pushKeyToUniversalServer(LOCAL_STORAGE_KEYS.gallery_items, all);
+
+  if (isSupabaseConfigured()) {
+    try {
+      await supabase.from('gallery_items').delete().eq('id', id);
+    } catch {
+      // Ignore if Supabase delete fails
+    }
   }
-  const { error } = await supabase.from('gallery_items').delete().eq('id', id);
-  if (error) throw new Error(error.message);
 }
 
 export async function adminUpsertSiteImage(
@@ -659,17 +724,18 @@ export async function adminUpsertSiteImage(
     updated_at: new Date().toISOString(),
   };
 
-  if (!isSupabaseConfigured()) {
-    const current = await getPublicSiteImages();
-    current[slot] = row;
-    if (typeof window !== 'undefined') {
-      window.localStorage.setItem(LOCAL_STORAGE_KEYS.site_images, JSON.stringify(current));
-    }
-    return;
-  }
+  await ensureUniversalStoreSynced();
+  const current = await getPublicSiteImages();
+  const updated = { ...current, [slot]: row };
+  await pushKeyToUniversalServer(LOCAL_STORAGE_KEYS.site_images, updated);
 
-  const { error } = await supabase.from('site_images').upsert(row, { onConflict: 'slot' });
-  if (error) throw new Error(error.message);
+  if (isSupabaseConfigured()) {
+    try {
+      await supabase.from('site_images').upsert(row, { onConflict: 'slot' });
+    } catch {
+      // Fallback to universal server copy
+    }
+  }
 }
 
 // =============================================================================
@@ -743,9 +809,7 @@ export async function adminSaveSalonSettings(settings: SalonSettings): Promise<v
 
 export async function adminSaveSiteTexts(texts: SiteTextsMap): Promise<void> {
   if (!isSupabaseConfigured()) {
-    if (typeof window !== 'undefined') {
-      window.localStorage.setItem(LOCAL_STORAGE_KEYS.site_texts, JSON.stringify(texts));
-    }
+    await pushKeyToUniversalServer(LOCAL_STORAGE_KEYS.site_texts, texts);
     return;
   }
   const entries: Array<{ key: keyof SiteTextsMap; value: unknown }> = [

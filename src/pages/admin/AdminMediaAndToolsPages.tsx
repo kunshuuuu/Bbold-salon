@@ -366,10 +366,10 @@ export const AdminPhotosGalleryPage: React.FC = () => {
           </select>
         </FormField>
 
-        <FormField label="Caption / Look description" required>
+        <FormField label="Caption / Look description">
           <input
             type="text"
-            required
+            placeholder="e.g. Dimensional Balayage & Gloss"
             value={gCaption}
             onChange={(e) => setGCaption(e.target.value)}
             className="w-full px-3 py-2 rounded-[8px] bg-[#FFFFFF] border border-[#E6E2DB] text-[14px]"
@@ -381,7 +381,28 @@ export const AdminPhotosGalleryPage: React.FC = () => {
           imageUrl={gImageUrl}
           altText={gCaption}
           folder="gallery"
-          onChange={(url) => setGImageUrl(url)}
+          onChange={(url) => {
+            setGImageUrl(url);
+            void adminUpsertGalleryItem({
+              id: editingGalleryId || undefined,
+              image_url: url,
+              before_image_url: gBeforeUrl,
+              caption: gCaption.trim() || `${gCategory} Lookbook`,
+              category: gCategory,
+              is_active: gIsActive,
+              is_sample: !gIsReal,
+            }).then(async (saved) => {
+              setEditingGalleryId(saved.id);
+              await loadData();
+              await refreshSiteData();
+              setToast({
+                id: String(Date.now()),
+                text: url
+                  ? 'Photo uploaded and live across all devices.'
+                  : 'Photo removed and synced across all devices.',
+              });
+            });
+          }}
         />
 
         <ImageUploader
@@ -389,7 +410,28 @@ export const AdminPhotosGalleryPage: React.FC = () => {
           imageUrl={gBeforeUrl === 'ILLUSTRATION_BEFORE' ? null : gBeforeUrl}
           altText={`Before ${gCaption}`}
           folder="gallery-before"
-          onChange={(url) => setGBeforeUrl(url)}
+          onChange={(url) => {
+            setGBeforeUrl(url);
+            if (editingGalleryId || gImageUrl) {
+              void adminUpsertGalleryItem({
+                id: editingGalleryId || undefined,
+                image_url: gImageUrl,
+                before_image_url: url,
+                caption: gCaption.trim() || `${gCategory} Transformation`,
+                category: gCategory,
+                is_active: gIsActive,
+                is_sample: !gIsReal,
+              }).then(async (saved) => {
+                setEditingGalleryId(saved.id);
+                await loadData();
+                await refreshSiteData();
+                setToast({
+                  id: String(Date.now()),
+                  text: 'Before photo synced across all devices.',
+                });
+              });
+            }
+          }}
         />
 
         <label className="flex items-center justify-between p-3 rounded-[8px] bg-[#F6F4F0] border border-[#E6E2DB] cursor-pointer">
@@ -429,8 +471,25 @@ export const AdminPhotosGalleryPage: React.FC = () => {
               requireAlt
               folder="site-slots"
               onChange={(url, alt) => {
+                const urlChanged = url !== slotImageUrl;
                 setSlotImageUrl(url);
                 setSlotAlt(alt);
+                if (urlChanged && slotDrawerConfig) {
+                  void adminUpsertSiteImage(
+                    slotDrawerConfig.id,
+                    url,
+                    (alt || slotDrawerConfig.defaultAlt).trim()
+                  ).then(async () => {
+                    await loadData();
+                    await refreshSiteData();
+                    setToast({
+                      id: String(Date.now()),
+                      text: url
+                        ? 'Slot photo uploaded and live across all devices.'
+                        : 'Slot photo reset and synced across all devices.',
+                    });
+                  });
+                }
               }}
             />
           </>

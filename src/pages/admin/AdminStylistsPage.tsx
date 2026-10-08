@@ -329,6 +329,26 @@ export const AdminStylistsPage: React.FC = () => {
           onChange={(url) => {
             setPhotoUrl(url);
             setIsDirty(true);
+            if (editingId && name.trim()) {
+              void adminUpsertStylist({
+                id: editingId,
+                name: name.trim(),
+                title: title.trim() || null,
+                bio: bio.trim() || null,
+                photo_url: url,
+                specialties,
+                is_active: isActive,
+                is_sample: !isRealContent,
+              }).then(async () => {
+                await loadData();
+                setToast({
+                  id: String(Date.now()),
+                  text: url
+                    ? 'Stylist photo uploaded and live across all devices.'
+                    : 'Stylist photo reset across all devices.',
+                });
+              });
+            }
           }}
         />
 

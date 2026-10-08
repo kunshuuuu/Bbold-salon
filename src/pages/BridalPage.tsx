@@ -149,7 +149,7 @@ export const BridalPage: React.FC = () => {
           {bridalPackages.map((pkg) => (
             <div
               key={pkg.id}
-              className="rounded-3xl bg-[#F2C9C0]/25 border border-[#15110F]/15 p-6 flex flex-col justify-between gap-5"
+              className="rounded-3xl bg-[#F5F0E8] border-2 border-[#15110F] shadow-[4px_4px_0px_#15110F] p-6 flex flex-col justify-between gap-5"
             >
               <div className="space-y-2.5">
                 <div className="flex items-start justify-between gap-2">
@@ -187,7 +187,7 @@ export const BridalPage: React.FC = () => {
       </section>
 
       {/* 4-Step Timeline */}
-      <section className="p-8 sm:p-12 rounded-3xl bg-[#E9DDD0]/65 border-2 border-[#15110F] shadow-[5px_5px_0px_#15110F] space-y-8">
+      <section className="pb-16 border-b-[2.5px] border-[#15110F] space-y-8">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <div className="font-mono text-xs font-bold uppercase tracking-widest text-[#C4262E]">
@@ -240,7 +240,7 @@ export const BridalPage: React.FC = () => {
             {bridalGallery.slice(0, 3).map((item) => (
               <div
                 key={item.id}
-                className="p-3 rounded-3xl bg-[#E9DDD0]/60 border-2 border-[#15110F] shadow-[4px_4px_0px_#15110F]"
+                className="p-3 rounded-3xl bg-[#E9DDD0] border-2 border-[#15110F] shadow-[4px_4px_0px_#15110F]"
               >
                 <Img
                   src={item.image_url === 'ILLUSTRATION_AFTER' ? null : item.image_url}

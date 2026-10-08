@@ -18,6 +18,11 @@ import {
   getLocalBusySlotsForDate,
   getLocalSalonSettings,
 } from './availability';
+import {
+  ensureUniversalStoreSynced,
+  getUniversalValue,
+  pushKeyToUniversalServer,
+} from './universalStore';
 import type {
   Service,
   Stylist,
@@ -50,19 +55,11 @@ export const LOCAL_STORAGE_KEYS = {
 } as const;
 
 export function readLocalTable<T>(key: string, defaultRows: T[]): T[] {
-  if (typeof window === 'undefined') return defaultRows;
-  try {
-    const raw = window.localStorage.getItem(key);
-    return raw ? (JSON.parse(raw) as T[]) : defaultRows;
-  } catch {
-    return defaultRows;
-  }
+  return getUniversalValue<T[]>(key, defaultRows);
 }
 
 export function writeLocalTable<T>(key: string, rows: T[]): void {
-  if (typeof window === 'undefined') return;
-  window.localStorage.setItem(key, JSON.stringify(rows));
-  window.dispatchEvent(new CustomEvent('bbold-sample-toggle'));
+  void pushKeyToUniversalServer(key, rows);
 }
 
 /**
@@ -104,6 +101,7 @@ function filterSample<T extends { is_sample?: boolean }>(rows: T[]): T[] {
 export async function getPublicServices(): Promise<Service[]> {
   const showSample = isSampleContentEnabled();
   if (!isSupabaseConfigured()) {
+    await ensureUniversalStoreSynced();
     const rows = readLocalTable(LOCAL_STORAGE_KEYS.services, SAMPLE_SERVICES);
     return filterSample(
       rows
@@ -126,6 +124,7 @@ export async function getPublicServices(): Promise<Service[]> {
 
   const { data, error } = await query;
   if (error || !data) {
+    await ensureUniversalStoreSynced();
     const rows = readLocalTable(LOCAL_STORAGE_KEYS.services, SAMPLE_SERVICES);
     return filterSample(rows.filter((s) => s.is_active));
   }
@@ -133,17 +132,21 @@ export async function getPublicServices(): Promise<Service[]> {
 }
 
 export async function getPublicStylists(): Promise<Stylist[]> {
-  const showSample = isSampleContentEnabled();
-  if (!isSupabaseConfigured()) {
-    const rows = readLocalTable(LOCAL_STORAGE_KEYS.stylists, SAMPLE_STYLISTS);
-    return filterSample(
-      rows
+  await ensureUniversalStoreSynced();
+  const localRows = readLocalTable(LOCAL_STORAGE_KEYS.stylists, SAMPLE_STYLISTS);
+  const sortStylists = (list: Stylist[]) =>
+    filterSample(
+      list
         .filter((s) => s.is_active)
         .slice()
         .sort((a, b) => a.sort_order - b.sort_order)
     );
+
+  if (!isSupabaseConfigured()) {
+    return sortStylists(localRows);
   }
 
+  const showSample = isSampleContentEnabled();
   let query = supabase
     .from('stylists')
     .select('*')
@@ -156,16 +159,30 @@ export async function getPublicStylists(): Promise<Stylist[]> {
   }
 
   const { data, error } = await query;
-  if (error || !data) {
-    const rows = readLocalTable(LOCAL_STORAGE_KEYS.stylists, SAMPLE_STYLISTS);
-    return filterSample(rows.filter((s) => s.is_active));
+  if (error || !data || data.length === 0) {
+    return sortStylists(localRows);
   }
-  return data as Stylist[];
+
+  const supaRows = data as Stylist[];
+  const merged = supaRows.map((s) => {
+    const loc = localRows.find((l) => l.id === s.id);
+    if (loc && loc.photo_url && !s.photo_url) {
+      return { ...s, photo_url: loc.photo_url };
+    }
+    return s;
+  });
+  for (const loc of localRows) {
+    if (!merged.some((m) => m.id === loc.id) && (!loc.is_sample || Boolean(loc.photo_url))) {
+      merged.push(loc);
+    }
+  }
+  return sortStylists(merged);
 }
 
 export async function getPublicCourses(): Promise<Course[]> {
   const showSample = isSampleContentEnabled();
   if (!isSupabaseConfigured()) {
+    await ensureUniversalStoreSynced();
     const rows = readLocalTable(LOCAL_STORAGE_KEYS.courses, SAMPLE_COURSES);
     return filterSample(
       rows
@@ -187,6 +204,7 @@ export async function getPublicCourses(): Promise<Course[]> {
 
   const { data, error } = await query;
   if (error || !data) {
+    await ensureUniversalStoreSynced();
     const rows = readLocalTable(LOCAL_STORAGE_KEYS.courses, SAMPLE_COURSES);
     return filterSample(rows.filter((c) => c.is_active));
   }
@@ -196,6 +214,7 @@ export async function getPublicCourses(): Promise<Course[]> {
 export async function getPublicTestimonials(): Promise<Testimonial[]> {
   const showSample = isSampleContentEnabled();
   if (!isSupabaseConfigured()) {
+    await ensureUniversalStoreSynced();
     const rows = readLocalTable(LOCAL_STORAGE_KEYS.testimonials, SAMPLE_TESTIMONIALS);
     return filterSample(rows.filter((t) => t.is_active && (t.is_sample || t.consent)));
   }
@@ -212,6 +231,7 @@ export async function getPublicTestimonials(): Promise<Testimonial[]> {
 
   const { data, error } = await query;
   if (error || !data) {
+    await ensureUniversalStoreSynced();
     const rows = readLocalTable(LOCAL_STORAGE_KEYS.testimonials, SAMPLE_TESTIMONIALS);
     return filterSample(rows.filter((t) => t.is_active && (t.is_sample || t.consent)));
   }
@@ -219,17 +239,31 @@ export async function getPublicTestimonials(): Promise<Testimonial[]> {
 }
 
 export async function getPublicGalleryItems(): Promise<GalleryItem[]> {
-  const showSample = isSampleContentEnabled();
-  if (!isSupabaseConfigured()) {
-    const rows = readLocalTable(LOCAL_STORAGE_KEYS.gallery_items, SAMPLE_GALLERY_ITEMS);
-    return filterSample(
-      rows
+  await ensureUniversalStoreSynced();
+  const localRows = readLocalTable(LOCAL_STORAGE_KEYS.gallery_items, SAMPLE_GALLERY_ITEMS);
+
+  const sortGallery = (list: GalleryItem[]) =>
+    filterSample(
+      list
         .filter((g) => g.is_active)
         .slice()
-        .sort((a, b) => a.sort_order - b.sort_order)
+        .sort((a, b) => {
+          const aHasRealPhoto =
+            Boolean(a.image_url) && a.image_url !== 'ILLUSTRATION_AFTER';
+          const bHasRealPhoto =
+            Boolean(b.image_url) && b.image_url !== 'ILLUSTRATION_AFTER';
+          if (aHasRealPhoto !== bHasRealPhoto) {
+            return aHasRealPhoto ? -1 : 1;
+          }
+          return (a.sort_order ?? 0) - (b.sort_order ?? 0);
+        })
     );
+
+  if (!isSupabaseConfigured()) {
+    return sortGallery(localRows);
   }
 
+  const showSample = isSampleContentEnabled();
   let query = supabase
     .from('gallery_items')
     .select('*')
@@ -241,16 +275,26 @@ export async function getPublicGalleryItems(): Promise<GalleryItem[]> {
   }
 
   const { data, error } = await query;
-  if (error || !data) {
-    const rows = readLocalTable(LOCAL_STORAGE_KEYS.gallery_items, SAMPLE_GALLERY_ITEMS);
-    return filterSample(rows.filter((g) => g.is_active));
+  if (error || !data || data.length === 0) {
+    return sortGallery(localRows);
   }
-  return data as GalleryItem[];
+
+  // Merge any custom items uploaded via universal store with Supabase rows
+  const supaRows = data as GalleryItem[];
+  const merged = [...supaRows];
+  for (const loc of localRows) {
+    const hasPhoto = Boolean(loc.image_url) && loc.image_url !== 'ILLUSTRATION_AFTER';
+    if (hasPhoto && !merged.some((m) => m.id === loc.id)) {
+      merged.unshift(loc);
+    }
+  }
+  return sortGallery(merged);
 }
 
 export async function getPublicFaqs(): Promise<FaqItem[]> {
   const showSample = isSampleContentEnabled();
   if (!isSupabaseConfigured()) {
+    await ensureUniversalStoreSynced();
     const rows = readLocalTable(LOCAL_STORAGE_KEYS.faqs, SAMPLE_FAQS);
     return filterSample(
       rows
@@ -272,6 +316,7 @@ export async function getPublicFaqs(): Promise<FaqItem[]> {
 
   const { data, error } = await query;
   if (error || !data) {
+    await ensureUniversalStoreSynced();
     const rows = readLocalTable(LOCAL_STORAGE_KEYS.faqs, SAMPLE_FAQS);
     return filterSample(rows.filter((f) => f.is_active));
   }
@@ -279,37 +324,40 @@ export async function getPublicFaqs(): Promise<FaqItem[]> {
 }
 
 export async function getPublicSiteImages(): Promise<Record<string, SiteImageRow>> {
+  await ensureUniversalStoreSynced();
+  const universalMap = getUniversalValue<Record<string, SiteImageRow>>(
+    LOCAL_STORAGE_KEYS.site_images,
+    {}
+  );
+
   if (!isSupabaseConfigured()) {
-    if (typeof window === 'undefined') return {};
-    try {
-      const raw = window.localStorage.getItem(LOCAL_STORAGE_KEYS.site_images);
-      return raw ? (JSON.parse(raw) as Record<string, SiteImageRow>) : {};
-    } catch {
-      return {};
-    }
+    return { ...universalMap };
   }
 
   const { data, error } = await supabase.from('site_images').select('*');
   if (error || !data) {
-    return {};
+    return { ...universalMap };
   }
 
-  const map: Record<string, SiteImageRow> = {};
+  const map: Record<string, SiteImageRow> = { ...universalMap };
   for (const row of data as SiteImageRow[]) {
-    map[row.slot] = row;
+    const existing = map[row.slot];
+    if (!existing || !existing.image_url || (row.image_url && row.updated_at >= existing.updated_at)) {
+      map[row.slot] = row;
+    }
   }
   return map;
 }
 
 export async function getPublicSiteTexts(): Promise<SiteTextsMap> {
+  await ensureUniversalStoreSynced();
+  const storedTexts = getUniversalValue<Partial<SiteTextsMap>>(
+    LOCAL_STORAGE_KEYS.site_texts,
+    {}
+  );
+
   if (!isSupabaseConfigured()) {
-    if (typeof window === 'undefined') return DEFAULT_SITE_TEXTS;
-    try {
-      const raw = window.localStorage.getItem(LOCAL_STORAGE_KEYS.site_texts);
-      return raw ? { ...DEFAULT_SITE_TEXTS, ...(JSON.parse(raw) as SiteTextsMap) } : DEFAULT_SITE_TEXTS;
-    } catch {
-      return DEFAULT_SITE_TEXTS;
-    }
+    return { ...DEFAULT_SITE_TEXTS, ...storedTexts };
   }
 
   const { data, error } = await supabase.from('site_texts').select('*');
@@ -341,6 +389,7 @@ export async function getPublicSiteTexts(): Promise<SiteTextsMap> {
 
 export async function getPublicSalonSettings(): Promise<SalonSettings> {
   if (!isSupabaseConfigured()) {
+    await ensureUniversalStoreSynced();
     return getLocalSalonSettings(DEFAULT_SALON_SETTINGS);
   }
 
@@ -352,6 +401,7 @@ export async function getPublicSalonSettings(): Promise<SalonSettings> {
     .maybeSingle();
 
   if (error || !data) {
+    await ensureUniversalStoreSynced();
     return getLocalSalonSettings(DEFAULT_SALON_SETTINGS);
   }
 
@@ -360,6 +410,7 @@ export async function getPublicSalonSettings(): Promise<SalonSettings> {
 
 export async function getPublicBusinessHours(): Promise<BusinessHour[]> {
   if (!isSupabaseConfigured()) {
+    await ensureUniversalStoreSynced();
     return getLocalBusinessHours(DEFAULT_BUSINESS_HOURS);
   }
 
@@ -369,6 +420,7 @@ export async function getPublicBusinessHours(): Promise<BusinessHour[]> {
     .order('weekday', { ascending: true });
 
   if (error || !data || data.length === 0) {
+    await ensureUniversalStoreSynced();
     return getLocalBusinessHours(DEFAULT_BUSINESS_HOURS);
   }
 
@@ -377,6 +429,7 @@ export async function getPublicBusinessHours(): Promise<BusinessHour[]> {
 
 export async function getPublicBlockedDates(): Promise<BlockedDate[]> {
   if (!isSupabaseConfigured()) {
+    await ensureUniversalStoreSynced();
     return getLocalBlockedDates();
   }
 
@@ -386,6 +439,7 @@ export async function getPublicBlockedDates(): Promise<BlockedDate[]> {
     .order('blocked_date', { ascending: true });
 
   if (error || !data) {
+    await ensureUniversalStoreSynced();
     return getLocalBlockedDates();
   }
 
@@ -394,6 +448,7 @@ export async function getPublicBlockedDates(): Promise<BlockedDate[]> {
 
 export async function getPublicBusySlots(dateStr: string): Promise<BusySlot[]> {
   if (!isSupabaseConfigured()) {
+    await ensureUniversalStoreSynced();
     return getLocalBusySlotsForDate(dateStr);
   }
 

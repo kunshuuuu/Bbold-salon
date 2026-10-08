@@ -135,7 +135,7 @@ export const PublicShell: React.FC = () => {
   return (
     <div
       data-room={activeRoom}
-      className="min-h-screen bg-[#F5F0E8] text-[#15110F] flex flex-col relative selection:bg-[#C4262E] selection:text-[#F5F0E8]"
+      className="min-h-screen bg-transparent text-[#15110F] flex flex-col relative selection:bg-[#C4262E] selection:text-[#F5F0E8]"
     >
       {/* Skip-to-content link for keyboard accessibility */}
       <a
@@ -164,10 +164,10 @@ export const PublicShell: React.FC = () => {
 
       {/* Sticky Editorial Header */}
       <header
-        className={`sticky top-0 z-[100] transition-all duration-300 border-b-[2.5px] border-[#15110F] no-print ${
+        className={`sticky top-0 z-[100] transition-all duration-300 border-b-[2.5px] border-[#15110F] bg-[#F5F0E8] no-print ${
           scrolled
-            ? 'h-16 bg-[#F5F0E8]/95 backdrop-blur-md shadow-[0_4px_24px_-12px_rgba(21,17,15,0.18)]'
-            : 'h-20 bg-[#F5F0E8]/90 backdrop-blur-sm'
+            ? 'h-16 shadow-[0_4px_24px_-12px_rgba(21,17,15,0.18)]'
+            : 'h-20'
         }`}
       >
         <div className="max-w-[1440px] mx-auto h-full px-4 sm:px-8 flex items-center justify-between gap-4">

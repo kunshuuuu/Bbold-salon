@@ -6,6 +6,7 @@ import {
   getPublicBusinessHours,
   isSampleContentEnabled,
 } from '../lib/content';
+import { syncUniversalStoreFromServer } from '../lib/universalStore';
 import {
   DEFAULT_SALON_SETTINGS,
   DEFAULT_BUSINESS_HOURS,
@@ -49,6 +50,7 @@ export const SiteDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const refreshSiteData = useCallback(async () => {
     setSampleEnabled(isSampleContentEnabled());
     try {
+      await syncUniversalStoreFromServer(false);
       const [imgs, texts, settings, hours] = await Promise.all([
         getPublicSiteImages(),
         getPublicSiteTexts(),
@@ -70,8 +72,20 @@ export const SiteDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       setSampleEnabled(isSampleContentEnabled());
       void refreshSiteData();
     };
+    const handleWindowFocus = () => {
+      void syncUniversalStoreFromServer(true);
+    };
+    const pollInterval = window.setInterval(() => {
+      void syncUniversalStoreFromServer(true);
+    }, 6000);
+
     window.addEventListener('bbold-sample-toggle', handleSampleToggle);
-    return () => window.removeEventListener('bbold-sample-toggle', handleSampleToggle);
+    window.addEventListener('focus', handleWindowFocus);
+    return () => {
+      window.removeEventListener('bbold-sample-toggle', handleSampleToggle);
+      window.removeEventListener('focus', handleWindowFocus);
+      window.clearInterval(pollInterval);
+    };
   }, [refreshSiteData]);
 
   return (

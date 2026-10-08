@@ -112,7 +112,7 @@ export const AcademyPage: React.FC = () => {
         {pillars.map((p) => (
           <div
             key={p.num}
-            className="p-7 rounded-3xl bg-[#E9DDD0]/65 border-2 border-[#15110F] shadow-[4px_4px_0px_#15110F] space-y-3"
+            className="p-7 rounded-3xl bg-[#E9DDD0] border-2 border-[#15110F] shadow-[4px_4px_0px_#15110F] space-y-3"
           >
             <span className="font-mono text-xs font-bold px-2.5 py-1 rounded-full bg-[#E8A317] border border-[#15110F] text-[#15110F]">
               Pillar {p.num}

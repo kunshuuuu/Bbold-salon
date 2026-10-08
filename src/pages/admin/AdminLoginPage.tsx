@@ -87,14 +87,14 @@ export const AdminLoginPage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-[100dvh] bg-[#F6F4F0] text-[#15110F] flex items-center justify-center font-sans text-sm">
+      <div className="min-h-[100dvh] dot-bg bg-[#F6F4F0] text-[#15110F] flex items-center justify-center font-sans text-sm">
         Checking session and administrator permissions...
       </div>
     );
   }
 
   return (
-    <div className="min-h-[100dvh] bg-[#F6F4F0] text-[#15110F] font-sans flex flex-col justify-center items-center p-4">
+    <div className="min-h-[100dvh] dot-bg bg-[#F6F4F0] text-[#15110F] font-sans flex flex-col justify-center items-center p-4">
       <Helmet>
         <title>Admin Sign In — {SITE_CONFIG.brandName}</title>
         <meta name="robots" content="noindex,nofollow" />

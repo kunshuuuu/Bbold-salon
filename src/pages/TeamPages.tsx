@@ -71,7 +71,7 @@ export const TeamPage: React.FC = () => {
             return (
               <article
                 key={sty.id}
-                className="rounded-3xl bg-[#E9DDD0]/55 border border-[#15110F]/15 p-6 flex flex-col justify-between shadow-sm hover:shadow-md transition-all"
+                className="rounded-3xl bg-[#E9DDD0] border border-[#15110F]/15 p-6 flex flex-col justify-between shadow-sm hover:shadow-md transition-all"
               >
                 <div>
                   <Link to={`/team/${sty.id}`} className="block">
@@ -305,7 +305,7 @@ export const StylistDetailPage: React.FC = () => {
               <Link
                 key={srv.id}
                 to={`/book?service=${srv.id}&stylist=${stylist.id}`}
-                className="p-5 rounded-2xl bg-[#E9DDD0]/60 hover:bg-[#E9DDD0] border-2 border-[#15110F] shadow-[3px_3px_0px_#15110F] flex items-center justify-between gap-4 transition-colors"
+                className="p-5 rounded-2xl bg-[#E9DDD0] hover:bg-[#F5F0E8] border-2 border-[#15110F] shadow-[3px_3px_0px_#15110F] flex items-center justify-between gap-4 transition-colors"
               >
                 <div>
                   <div className="font-display font-bold text-base text-[#15110F]">
@@ -340,7 +340,7 @@ export const StylistDetailPage: React.FC = () => {
             {matchingGallery.map((g) => (
               <div
                 key={g.id}
-                className="p-3 rounded-3xl bg-[#E9DDD0]/50 border border-[#15110F]/15"
+                className="p-3 rounded-3xl bg-[#E9DDD0] border border-[#15110F]/15"
               >
                 <Img
                   src={g.image_url === 'ILLUSTRATION_AFTER' ? null : g.image_url}

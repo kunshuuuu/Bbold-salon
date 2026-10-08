@@ -195,22 +195,27 @@ export const HomePage: React.FC = () => {
 
   useEffect(() => {
     let mounted = true;
-    Promise.all([
-      getPublicServices(),
-      getPublicStylists(),
-      getPublicCourses(),
-      getPublicTestimonials(),
-      getPublicGalleryItems(),
-    ]).then(([srv, sty, crs, tst, gal]) => {
-      if (!mounted) return;
-      setServices(srv);
-      setStylists(sty);
-      setCourses(crs);
-      setTestimonials(tst);
-      setGallery(gal);
-    });
+    const loadAll = () => {
+      Promise.all([
+        getPublicServices(),
+        getPublicStylists(),
+        getPublicCourses(),
+        getPublicTestimonials(),
+        getPublicGalleryItems(),
+      ]).then(([srv, sty, crs, tst, gal]) => {
+        if (!mounted) return;
+        setServices(srv);
+        setStylists(sty);
+        setCourses(crs);
+        setTestimonials(tst);
+        setGallery(gal);
+      });
+    };
+    loadAll();
+    window.addEventListener('bbold-sample-toggle', loadAll);
     return () => {
       mounted = false;
+      window.removeEventListener('bbold-sample-toggle', loadAll);
     };
   }, []);
 
@@ -244,7 +249,16 @@ export const HomePage: React.FC = () => {
 
   // First Before/After item in gallery
   const beforeAfterItem = useMemo(() => {
-    return gallery.find((g) => Boolean(g.before_image_url)) || gallery[0] || null;
+    return (
+      gallery.find(
+        (g) =>
+          Boolean(g.before_image_url) &&
+          Boolean(g.image_url && !g.image_url.startsWith('ILLUSTRATION_'))
+      ) ||
+      gallery.find((g) => Boolean(g.before_image_url)) ||
+      gallery[0] ||
+      null
+    );
   }, [gallery]);
 
   // 3 lookbook teaser items
@@ -326,7 +340,7 @@ export const HomePage: React.FC = () => {
                   <span className="text-[#15110F] drop-shadow-[3px_3px_0px_#E8A317]">
                     BOLD{' '}
                   </span>
-                  <span className="text-[#C4262E] [-webkit-text-stroke:1.5px_#15110F] drop-shadow-[4px_4px_0px_#15110F]">
+                  <span className="text-[#C4262E] text-stroke-shadow-lg">
                     HAIR &amp; GLAM.
                   </span>
                   <span
@@ -337,7 +351,7 @@ export const HomePage: React.FC = () => {
 
                 {/* Line 2: Red + Black with Black Stroke & Shadow + Left-to-Right Hover Underline */}
                 <span className="block relative w-fit">
-                  <span className="text-[#C4262E] [-webkit-text-stroke:1.5px_#15110F] drop-shadow-[4px_4px_0px_#15110F]">
+                  <span className="text-[#C4262E] text-stroke-shadow-lg">
                     SHARP{' '}
                   </span>
                   <span className="text-[#15110F] drop-shadow-[3px_3px_0px_#F2C9C0]">
@@ -354,7 +368,7 @@ export const HomePage: React.FC = () => {
                   <span className="text-[#15110F] drop-shadow-[2px_2px_0px_#E9DDD0]">
                     {siteTexts.hero?.line1 || 'Look like you'}{' '}
                   </span>
-                  <span className="italic text-[#C4262E] [-webkit-text-stroke:1px_#15110F] drop-shadow-[3px_3px_0px_#15110F]">
+                  <span className="italic text-[#C4262E] text-stroke-shadow-md">
                     {siteTexts.hero?.line2 || 'meant it.'}
                   </span>
                   <span
@@ -542,7 +556,7 @@ export const HomePage: React.FC = () => {
                   </div>
                 </div>
                 <div>
-                  <div className="font-display text-3xl sm:text-4xl font-extrabold text-[#E8A317] [-webkit-text-stroke:1px_#15110F]">
+                  <div className="font-display text-3xl sm:text-4xl font-extrabold text-[#E8A317] text-stroke-shadow-sm">
                     <CountUpNumber value={courses.length || 5} />
                   </div>
                   <div className="font-mono text-[11px] font-bold uppercase tracking-wider text-[#15110F]/80 mt-1">
@@ -567,7 +581,7 @@ export const HomePage: React.FC = () => {
       {/* =====================================================================
           SECTION 4: SIX-STATION SHOWCASE (Button-Controlled Track, No Scrollbar)
          ===================================================================== */}
-      <section className="py-16 lg:py-24 bg-[#E9DDD0]/65 border-b-[2.5px] border-[#15110F]">
+      <section className="py-16 lg:py-24 bg-transparent border-b-[2.5px] border-[#15110F]">
         <div className="max-w-[1440px] mx-auto px-4 sm:px-8 mb-10 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
           <div>
             <div className="font-mono text-xs font-bold uppercase tracking-[0.14em] text-[#C4262E]">
@@ -754,7 +768,7 @@ export const HomePage: React.FC = () => {
                   to={`/book?service=${srv.id}`}
                   data-cursor="book"
                   onMouseEnter={() => setHoveredService(srv)}
-                  className="group p-5 rounded-2xl bg-[#E9DDD0]/55 hover:bg-[#E9DDD0] border-2 border-[#15110F] shadow-[3px_3px_0px_#15110F] transition-all flex flex-col justify-between gap-3"
+                  className="group p-5 rounded-2xl bg-[#E9DDD0] hover:bg-[#F5F0E8] border-2 border-[#15110F] shadow-[3px_3px_0px_#15110F] transition-all flex flex-col justify-between gap-3"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div>
@@ -870,7 +884,7 @@ export const HomePage: React.FC = () => {
       {/* =====================================================================
           SECTION 6: BEFORE & AFTER DRAG COMPARISON + LOOKBOOK TEASER
          ===================================================================== */}
-      <section className="py-20 lg:py-28 bg-[#E9DDD0]/55 border-b-[2.5px] border-[#15110F]">
+      <section className="py-20 lg:py-28 bg-transparent border-b-[2.5px] border-[#15110F]">
         <div className="max-w-[1440px] mx-auto px-4 sm:px-8">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-12">
             <div>
@@ -983,7 +997,7 @@ export const HomePage: React.FC = () => {
               return (
                 <div
                   key={sty.id}
-                  className="group rounded-3xl bg-[#E9DDD0]/60 border-2 border-[#15110F] p-5 flex flex-col justify-between transition-all hover:-translate-y-1 shadow-[4px_4px_0px_#15110F]"
+                  className="group rounded-3xl bg-[#E9DDD0] border-2 border-[#15110F] p-5 flex flex-col justify-between transition-all hover:-translate-y-1 shadow-[4px_4px_0px_#15110F]"
                 >
                   <div>
                     <Link to={`/team/${sty.id}`} className="block">
@@ -1141,7 +1155,7 @@ export const HomePage: React.FC = () => {
           </div>
 
           {activeTestimonial ? (
-            <div className="relative rounded-3xl bg-[#E9DDD0]/65 border-2 border-[#15110F] shadow-[6px_6px_0px_#15110F] p-8 sm:p-14 overflow-hidden">
+            <div className="relative rounded-3xl bg-[#E9DDD0] border-2 border-[#15110F] shadow-[6px_6px_0px_#15110F] p-8 sm:p-14 overflow-hidden">
               {/* Giant decorative quotation mark */}
               <div
                 aria-hidden="true"
@@ -1218,7 +1232,7 @@ export const HomePage: React.FC = () => {
             <DieCutSticker variant="stamp" rotate={6} />
           </div>
 
-          <h2 className="font-display font-black text-hero text-[#F5F0E8] [-webkit-text-stroke:1.5px_#15110F] drop-shadow-[4px_4px_0px_#15110F] max-w-4xl mx-auto">
+          <h2 className="font-display font-black text-hero text-[#F5F0E8] text-stroke-shadow-lg max-w-4xl mx-auto">
             Ready for your boldest look?
           </h2>
           <p className="text-base sm:text-lg text-[#F5F0E8] font-medium max-w-xl mx-auto">
