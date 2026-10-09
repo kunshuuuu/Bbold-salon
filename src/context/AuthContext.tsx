@@ -4,6 +4,7 @@ import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
 const INACTIVITY_TIMEOUT_MS = 30 * 60 * 1000; // 30 minutes
 const WARNING_WINDOW_MS = 60 * 1000;          // 60 seconds warning before auto sign-out
+const ADMIN_ALLOWED_UID = '94ea72fb-56f0-4b7c-9d5f-9a944ce358b0';
 const ADMIN_ALLOWED_EMAIL = 'bboldmumbaisalon@gmail.com';
 const ADMIN_ALLOWED_PASS = 'bbold@2026';
 const ADMIN_SESSION_STORAGE_KEY = 'bbold_admin_strict_session_v1';
@@ -71,9 +72,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           : null;
 
       if (storedEmail === ADMIN_ALLOWED_EMAIL) {
+        if (isSupabaseConfigured()) {
+          supabase.auth.getSession().then(({ data }) => {
+            if (!data.session) {
+              void supabase.auth
+                .signInWithPassword({
+                  email: ADMIN_ALLOWED_EMAIL,
+                  password: ADMIN_ALLOWED_PASS,
+                })
+                .catch(() => {});
+            }
+          });
+        }
         if (mounted) {
           setUser({
-            id: 'bbold-admin-owner',
+            id: ADMIN_ALLOWED_UID,
             email: ADMIN_ALLOWED_EMAIL,
             app_metadata: {},
             user_metadata: {},
@@ -104,7 +117,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const sessionUser = session?.user ?? null;
         if (
           sessionUser &&
-          (sessionUser.email || '').trim().toLowerCase() === ADMIN_ALLOWED_EMAIL
+          ((sessionUser.email || '').trim().toLowerCase() === ADMIN_ALLOWED_EMAIL ||
+            sessionUser.id === ADMIN_ALLOWED_UID)
         ) {
           if (mounted) {
             setUser(sessionUser);
@@ -205,7 +219,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
 
         const adminUser = {
-          id: 'bbold-admin-owner',
+          id: ADMIN_ALLOWED_UID,
           email: ADMIN_ALLOWED_EMAIL,
           app_metadata: {},
           user_metadata: {},

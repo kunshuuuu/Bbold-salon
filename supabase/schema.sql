@@ -173,8 +173,105 @@ create index if not exists idx_services_active_sort on public.services(is_active
 create index if not exists idx_stylists_active_sort on public.stylists(is_active, sort_order);
 
 -- =============================================================================
--- 3. SECURITY & ROW LEVEL SECURITY (RLS)
+-- 3. SECURITY, SINGLE-ADMIN PROVISIONING & ROW LEVEL SECURITY (RLS)
+--    Single Authorized Admin:
+--      UID   : 94ea72fb-56f0-4b7c-9d5f-9a944ce358b0
+--      Email : bboldmumbaisalon@gmail.com
+--      Pass  : bbold@2026
 -- =============================================================================
+
+do $$
+declare
+  v_admin_uid constant uuid := '94ea72fb-56f0-4b7c-9d5f-9a944ce358b0'::uuid;
+  v_admin_email constant text := 'bboldmumbaisalon@gmail.com';
+  v_admin_pass constant text := 'bbold@2026';
+  v_existing_uid uuid;
+begin
+  begin
+    select id into v_existing_uid
+      from auth.users
+     where id = v_admin_uid or lower(email) = v_admin_email
+     limit 1;
+
+    if v_existing_uid is not null then
+      update auth.users
+         set email = v_admin_email,
+             encrypted_password = crypt(v_admin_pass, gen_salt('bf')),
+             email_confirmed_at = coalesce(email_confirmed_at, now()),
+             updated_at = now()
+       where id = v_existing_uid;
+    else
+      insert into auth.users (
+        instance_id,
+        id,
+        aud,
+        role,
+        email,
+        encrypted_password,
+        email_confirmed_at,
+        raw_app_meta_data,
+        raw_user_meta_data,
+        created_at,
+        updated_at,
+        confirmation_token,
+        email_change,
+        email_change_token_new,
+        recovery_token
+      ) values (
+        '00000000-0000-0000-0000-000000000000',
+        v_admin_uid,
+        'authenticated',
+        'authenticated',
+        v_admin_email,
+        crypt(v_admin_pass, gen_salt('bf')),
+        now(),
+        '{"provider":"email","providers":["email"]}'::jsonb,
+        '{"role":"admin"}'::jsonb,
+        now(),
+        now(),
+        '',
+        '',
+        '',
+        ''
+      );
+      v_existing_uid := v_admin_uid;
+    end if;
+
+    insert into auth.identities (
+      id,
+      user_id,
+      provider_id,
+      identity_data,
+      provider,
+      last_sign_in_at,
+      created_at,
+      updated_at
+    )
+    select
+      gen_random_uuid(),
+      v_existing_uid,
+      v_existing_uid::text,
+      jsonb_build_object('sub', v_existing_uid::text, 'email', v_admin_email, 'email_verified', true),
+      'email',
+      now(),
+      now(),
+      now()
+    where not exists (
+      select 1 from auth.identities where user_id = v_existing_uid and provider = 'email'
+    );
+  exception when others then
+    raise notice 'auth.users check completed: %', sqlerrm;
+  end;
+
+  delete from public.admin_users
+   where user_id <> coalesce(v_existing_uid, v_admin_uid);
+
+  insert into public.admin_users (user_id)
+  select id from auth.users
+   where id = v_admin_uid or lower(email) = v_admin_email
+  on conflict (user_id) do nothing;
+end
+$$;
 
 create or replace function public.is_admin()
 returns boolean
@@ -183,10 +280,22 @@ stable
 security definer
 set search_path = public
 as $$
-  select exists (
-    select 1
-    from public.admin_users
-    where user_id = auth.uid()
+  select (
+    auth.uid() = '94ea72fb-56f0-4b7c-9d5f-9a944ce358b0'::uuid
+    or (
+      lower(coalesce(auth.jwt() ->> 'email', '')) = 'bboldmumbaisalon@gmail.com'
+      and exists (
+        select 1
+        from public.admin_users
+        where user_id = auth.uid()
+      )
+    )
+    or exists (
+      select 1
+      from public.admin_users
+      where user_id = auth.uid()
+        and user_id = '94ea72fb-56f0-4b7c-9d5f-9a944ce358b0'::uuid
+    )
   );
 $$;
 

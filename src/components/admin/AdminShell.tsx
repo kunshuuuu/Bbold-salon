@@ -21,10 +21,15 @@ import {
   LogOut,
   Menu,
   X,
+  RefreshCw,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { adminGetAppointments } from '../../lib/adminApi';
 import { supabase, isSupabaseConfigured } from '../../lib/supabase';
+import {
+  checkSupabaseConnectionProgress,
+  type SupabaseConnectionReport,
+} from '../../lib/supabaseSetup';
 
 interface NavGroup {
   groupLabel: string;
@@ -80,6 +85,24 @@ export const AdminShell: React.FC = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [pendingCount, setPendingCount] = useState(0);
   const [realtimeToast, setRealtimeToast] = useState<string | null>(null);
+  const [connStatus, setConnStatus] = useState<SupabaseConnectionReport | null>(null);
+  const [refreshingConn, setRefreshingConn] = useState(false);
+
+  const handleRefreshConn = async () => {
+    setRefreshingConn(true);
+    try {
+      const report = await checkSupabaseConnectionProgress();
+      setConnStatus(report);
+    } finally {
+      setRefreshingConn(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isAdmin) {
+      void handleRefreshConn();
+    }
+  }, [isAdmin]);
 
   // Close off-canvas sidebar on route change
   useEffect(() => {
@@ -272,7 +295,40 @@ export const AdminShell: React.FC = () => {
             </span>
           </div>
 
-          <div className="flex items-center gap-3 shrink-0">
+          <div className="flex items-center gap-2.5 shrink-0">
+            {connStatus && (
+              <div className="hidden md:inline-flex items-center gap-1 rounded-[8px] border border-[#E6E2DB] bg-[#F6F4F0] px-2.5 py-1 text-[12px]">
+                <Link
+                  to="/admin/data-tools"
+                  className="inline-flex items-center gap-1.5 font-medium text-[#15110F] hover:text-[#C4262E]"
+                  title="View Supabase connection progress & SQL setup"
+                >
+                  <span
+                    className={`w-2 h-2 rounded-full ${
+                      connStatus.overallState === 'connected'
+                        ? 'bg-[#1E7B4F]'
+                        : connStatus.overallState === 'partial'
+                        ? 'bg-[#B7791F]'
+                        : 'bg-[#B3261E]'
+                    }`}
+                  />
+                  <span>Supabase: {connStatus.statusLabel}</span>
+                  <span className="font-mono text-[11px] text-[#6B6560]">
+                    ({connStatus.progressPercent}%)
+                  </span>
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => void handleRefreshConn()}
+                  disabled={refreshingConn}
+                  title="Refresh Supabase connection status"
+                  className="ml-1 p-1 rounded hover:bg-[#E6E2DB] text-[#15110F] cursor-pointer disabled:opacity-50"
+                >
+                  <RefreshCw size={13} className={refreshingConn ? 'animate-spin' : ''} />
+                </button>
+              </div>
+            )}
+
             <a
               href="/"
               target="_blank"

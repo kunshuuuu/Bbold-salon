@@ -1,5 +1,18 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Download, Upload, Trash2 } from 'lucide-react';
+import {
+  Download,
+  Upload,
+  Trash2,
+  RefreshCw,
+  CheckCircle2,
+  AlertCircle,
+  Clock,
+  Copy,
+  Check,
+  Database,
+  ShieldCheck,
+  Code2,
+} from 'lucide-react';
 import {
   adminDeleteGalleryItem,
   adminExportAllJson,
@@ -9,6 +22,13 @@ import {
   adminUpsertGalleryItem,
   adminUpsertSiteImage,
 } from '../../lib/adminApi';
+import {
+  ADMIN_ALLOWED_EMAIL,
+  ADMIN_ALLOWED_UID,
+  checkSupabaseConnectionProgress,
+  generateCompleteSupabaseSql,
+  type SupabaseConnectionReport,
+} from '../../lib/supabaseSetup';
 import {
   getPublicSiteImages,
   getPublicSiteTexts,
@@ -727,7 +747,7 @@ export const AdminHomepageTextPage: React.FC = () => {
 };
 
 // =============================================================================
-// 3. DATA TOOLS PAGE (/admin/data-tools — Export JSON, Import JSON, Remove sample)
+// 3. DATA TOOLS PAGE (/admin/data-tools — Supabase SQL Download, Connection Progress, Export/Import JSON, Remove sample)
 // =============================================================================
 
 export const AdminDataToolsPage: React.FC = () => {
@@ -736,13 +756,90 @@ export const AdminDataToolsPage: React.FC = () => {
   const [confirmRemove, setConfirmRemove] = useState(false);
   const [toast, setToast] = useState<ToastMessage | null>(null);
 
+  const [connReport, setConnReport] = useState<SupabaseConnectionReport | null>(null);
+  const [checkingConn, setCheckingConn] = useState(false);
+  const [generatingSql, setGeneratingSql] = useState(false);
+  const [copiedSql, setCopiedSql] = useState(false);
+  const [sqlPreviewOpen, setSqlPreviewOpen] = useState(false);
+  const [sqlText, setSqlText] = useState<string>('');
+
   const loadCounts = useCallback(async () => {
     setSampleCounts(await getSampleContentCounts());
   }, []);
 
+  const handleRefreshConnection = useCallback(async (showToast = false) => {
+    setCheckingConn(true);
+    try {
+      const report = await checkSupabaseConnectionProgress();
+      setConnReport(report);
+      if (showToast) {
+        setToast({
+          id: String(Date.now()),
+          text: `Connection checked (${report.checkedAt}): ${report.statusLabel} (${report.progressPercent}%).`,
+        });
+      }
+    } finally {
+      setCheckingConn(false);
+    }
+  }, []);
+
   useEffect(() => {
     void loadCounts();
-  }, [loadCounts]);
+    void handleRefreshConnection(false);
+  }, [loadCounts, handleRefreshConnection]);
+
+  const handleDownloadSupabaseSql = async () => {
+    setGeneratingSql(true);
+    try {
+      const sql = await generateCompleteSupabaseSql();
+      setSqlText(sql);
+      const blob = new Blob([sql], { type: 'application/sql;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `bbold-supabase-setup-${new Date().toISOString().slice(0, 10)}.sql`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      setToast({
+        id: String(Date.now()),
+        text: 'Supabase SQL file downloaded. Paste and run it in your Supabase SQL Editor.',
+      });
+    } finally {
+      setGeneratingSql(false);
+    }
+  };
+
+  const handleCopySupabaseSql = async () => {
+    setGeneratingSql(true);
+    try {
+      const sql = sqlText || (await generateCompleteSupabaseSql());
+      setSqlText(sql);
+      await navigator.clipboard.writeText(sql);
+      setCopiedSql(true);
+      window.setTimeout(() => setCopiedSql(false), 3000);
+      setToast({
+        id: String(Date.now()),
+        text: 'Complete Supabase SQL copied to clipboard! Paste it in the Supabase SQL Editor.',
+      });
+    } finally {
+      setGeneratingSql(false);
+    }
+  };
+
+  const handleToggleSqlPreview = async () => {
+    if (!sqlPreviewOpen && !sqlText) {
+      setGeneratingSql(true);
+      try {
+        const sql = await generateCompleteSupabaseSql();
+        setSqlText(sql);
+      } finally {
+        setGeneratingSql(false);
+      }
+    }
+    setSqlPreviewOpen((prev) => !prev);
+  };
 
   const handleExportJson = async () => {
     const dump = await adminExportAllJson();
@@ -790,14 +887,225 @@ export const AdminDataToolsPage: React.FC = () => {
     });
   };
 
+  const badgeStyles =
+    connReport?.overallState === 'connected'
+      ? 'bg-[#1E7B4F]/15 text-[#1E7B4F] border-[#1E7B4F]/30'
+      : connReport?.overallState === 'partial'
+      ? 'bg-[#B7791F]/15 text-[#B7791F] border-[#B7791F]/30'
+      : 'bg-[#B3261E]/15 text-[#B3261E] border-[#B3261E]/30';
+
+  const barColor =
+    connReport?.overallState === 'connected'
+      ? 'bg-[#1E7B4F]'
+      : connReport?.overallState === 'partial'
+      ? 'bg-[#B7791F]'
+      : 'bg-[#B3261E]';
+
   return (
     <div className="space-y-6 min-w-0">
       <PageHeader
-        title="Data tools"
-        description="Export a complete JSON backup of your website content, restore a backup, or remove sample rows."
-        helpText="Always export a JSON backup before making bulk changes or removing all sample rows."
+        title="Data tools & Supabase SQL setup"
+        description="Download the complete Supabase SQL script, verify your live Supabase connection progress, or manage JSON backups."
+        helpText="Paste the downloaded SQL script into your Supabase SQL Editor and click Run, then click Refresh connection below to verify 100% setup."
       />
 
+      {/* =====================================================================
+          SUPABASE CONNECTION PROGRESS & LIVE VERIFICATION PANEL
+         ===================================================================== */}
+      <div className="p-6 rounded-[12px] bg-[#FFFFFF] border border-[#E6E2DB] space-y-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#E6E2DB]">
+          <div className="space-y-1">
+            <div className="flex flex-wrap items-center gap-2.5">
+              <Database size={18} className="text-[#C4262E]" />
+              <h2 className="text-[16px] font-semibold text-[#15110F]">
+                Supabase Connection Status &amp; Progress
+              </h2>
+              {connReport && (
+                <span
+                  className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[12px] font-semibold border ${badgeStyles}`}
+                >
+                  <span
+                    className={`w-2 h-2 rounded-full ${
+                      connReport.overallState === 'connected'
+                        ? 'bg-[#1E7B4F]'
+                        : connReport.overallState === 'partial'
+                        ? 'bg-[#B7791F]'
+                        : 'bg-[#B3261E]'
+                    }`}
+                  />
+                  {connReport.statusLabel} ({connReport.progressPercent}%)
+                </span>
+              )}
+            </div>
+            <p className="text-[13px] text-[#6B6560]">
+              {connReport?.summaryMessage || 'Checking connection to Supabase...'}
+            </p>
+          </div>
+
+          <div className="flex items-center gap-3 shrink-0">
+            {connReport?.checkedAt && (
+              <span className="text-[11px] font-mono text-[#6B6560]">
+                Last checked: {connReport.checkedAt}
+              </span>
+            )}
+            <button
+              type="button"
+              disabled={checkingConn}
+              onClick={() => void handleRefreshConnection(true)}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-[8px] bg-[#15110F] hover:bg-[#C4262E] text-white text-[13px] font-medium transition-colors disabled:opacity-50 cursor-pointer"
+            >
+              <RefreshCw size={15} className={checkingConn ? 'animate-spin' : ''} />
+              <span>{checkingConn ? 'Checking...' : 'Refresh connection'}</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Progress Bar */}
+        <div className="space-y-1.5">
+          <div className="flex items-center justify-between text-[12px] font-mono">
+            <span className="text-[#6B6560] uppercase tracking-wider">
+              Setup Verification Progress
+            </span>
+            <span className="font-semibold text-[#15110F]">
+              {connReport?.progressPercent ?? 0}% Complete
+            </span>
+          </div>
+          <div className="w-full h-2.5 rounded-full bg-[#F6F4F0] border border-[#E6E2DB] overflow-hidden">
+            <div
+              className={`h-full transition-all duration-500 ${barColor}`}
+              style={{ width: `${Math.max(4, connReport?.progressPercent ?? 0)}%` }}
+            />
+          </div>
+        </div>
+
+        {/* 5-Step Diagnostic Checklist */}
+        {connReport && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+            {connReport.steps.map((step) => (
+              <div
+                key={step.id}
+                className="p-3.5 rounded-[10px] bg-[#F6F4F0] border border-[#E6E2DB] flex items-start gap-3"
+              >
+                <div className="mt-0.5 shrink-0">
+                  {step.status === 'done' ? (
+                    <CheckCircle2 size={18} className="text-[#1E7B4F]" />
+                  ) : step.status === 'error' ? (
+                    <AlertCircle size={18} className="text-[#B3261E]" />
+                  ) : (
+                    <Clock size={18} className="text-[#B7791F]" />
+                  )}
+                </div>
+                <div className="min-w-0 flex-1 space-y-0.5">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-[13px] font-semibold text-[#15110F]">
+                      {step.label}
+                    </span>
+                    <span
+                      className={`font-mono text-[10px] uppercase px-2 py-0.5 rounded font-semibold ${
+                        step.status === 'done'
+                          ? 'bg-[#1E7B4F]/15 text-[#1E7B4F]'
+                          : step.status === 'error'
+                          ? 'bg-[#B3261E]/15 text-[#B3261E]'
+                          : 'bg-[#B7791F]/15 text-[#B7791F]'
+                      }`}
+                    >
+                      {step.status === 'done'
+                        ? 'Connected'
+                        : step.status === 'error'
+                        ? 'Action Needed'
+                        : 'Pending'}
+                    </span>
+                  </div>
+                  <p className="text-[12px] text-[#6B6560] leading-snug">{step.detail}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Locked Admin Identity Box */}
+        <div className="p-3.5 rounded-[10px] bg-[#F5F0E8] border border-[#E6E2DB] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-[12px]">
+          <div className="flex items-center gap-2.5">
+            <ShieldCheck size={18} className="text-[#C4262E] shrink-0" />
+            <div>
+              <span className="font-semibold text-[#15110F]">
+                Single-Admin Security Lock Active:
+              </span>{' '}
+              <span className="text-[#6B6560]">
+                Only <code className="font-mono font-semibold text-[#15110F]">{ADMIN_ALLOWED_EMAIL}</code>{' '}
+                (UID: <code className="font-mono font-semibold text-[#C4262E]">{ADMIN_ALLOWED_UID}</code>) is authorized in the SQL &amp; Admin Panel.
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* =====================================================================
+          DOWNLOAD / COPY COMPLETE SUPABASE SQL SCRIPT CARD
+         ===================================================================== */}
+      <div className="p-6 rounded-[12px] bg-[#FFFFFF] border border-[#E6E2DB] space-y-4">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div className="space-y-1">
+            <h2 className="text-[16px] font-semibold text-[#15110F]">
+              Download Complete Supabase SQL Script (Ready for Supabase SQL Editor)
+            </h2>
+            <p className="text-[14px] text-[#6B6560] max-w-3xl">
+              Generates a single, error-free PostgreSQL script containing all 14 tables, Row-Level
+              Security (RLS) policies, booking &amp; availability RPCs, the <code className="font-mono">media</code> storage
+              bucket, your current salon content, and the locked admin account (
+              <code className="font-mono">{ADMIN_ALLOWED_EMAIL}</code> / UID{' '}
+              <code className="font-mono">{ADMIN_ALLOWED_UID}</code>).
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+            <button
+              type="button"
+              disabled={generatingSql}
+              onClick={() => void handleDownloadSupabaseSql()}
+              className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-[8px] bg-[#C4262E] hover:bg-[#15110F] text-white text-[14px] font-medium transition-colors cursor-pointer disabled:opacity-50"
+            >
+              <Download size={16} />
+              <span>{generatingSql ? 'Preparing SQL...' : 'Download Supabase SQL (.sql)'}</span>
+            </button>
+
+            <button
+              type="button"
+              disabled={generatingSql}
+              onClick={() => void handleCopySupabaseSql()}
+              className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-[8px] border border-[#E6E2DB] bg-[#F6F4F0] hover:bg-[#E6E2DB]/70 text-[#15110F] text-[14px] font-medium transition-colors cursor-pointer disabled:opacity-50"
+            >
+              {copiedSql ? <Check size={16} className="text-[#1E7B4F]" /> : <Copy size={16} />}
+              <span>{copiedSql ? 'Copied SQL!' : 'Copy SQL to Clipboard'}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => void handleToggleSqlPreview()}
+              className="inline-flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-[8px] border border-[#E6E2DB] bg-[#FFFFFF] hover:bg-[#F6F4F0] text-[#15110F] text-[13px] font-medium transition-colors cursor-pointer"
+            >
+              <Code2 size={16} />
+              <span>{sqlPreviewOpen ? 'Hide SQL Preview' : 'View SQL'}</span>
+            </button>
+          </div>
+        </div>
+
+        {sqlPreviewOpen && sqlText && (
+          <div className="pt-3 border-t border-[#E6E2DB] space-y-2">
+            <div className="flex items-center justify-between text-[12px] font-mono text-[#6B6560]">
+              <span>Paste this entire script into Supabase Dashboard → SQL Editor → New Query → Run</span>
+              <span>{sqlText.split('\n').length} lines</span>
+            </div>
+            <pre className="p-4 rounded-[8px] bg-[#15110F] text-[#F5F0E8] font-mono text-[12px] overflow-x-auto max-h-[380px] overflow-y-auto leading-relaxed">
+              {sqlText}
+            </pre>
+          </div>
+        )}
+      </div>
+
+      {/* =====================================================================
+          JSON BACKUP & SAMPLE CONTENT TOOLS
+         ===================================================================== */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="p-6 rounded-[12px] bg-[#FFFFFF] border border-[#E6E2DB] flex flex-col justify-between gap-4">
           <div>
