@@ -10,7 +10,7 @@ import {
 import { formatINR } from '../config/site';
 import { Img } from '../components/visual/Img';
 import { SampleTag } from '../components/common/SampleTag';
-import { DieCutSticker } from '../components/public/GlobalEffects';
+import { DieCutSticker, StickerDrop } from '../components/public/GlobalEffects';
 import type { GalleryItem, Service, Stylist } from '../types/database';
 
 export const TeamPage: React.FC = () => {
@@ -42,12 +42,14 @@ export const TeamPage: React.FC = () => {
       <div className="space-y-3 pb-10 border-b-[2.5px] border-[#15110F] flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div className="space-y-3">
           <div className="flex flex-wrap items-center gap-3">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#E8A317] border-2 border-[#15110F] font-mono text-xs font-bold uppercase tracking-widest text-[#15110F]">
-              <Sparkles size={12} />
-              <span>The Artists Behind the Chair</span>
-            </div>
-            <DieCutSticker variant="scissors" rotate={-4} />
-            <DieCutSticker variant="blowdryer" rotate={5} />
+            <StickerDrop rotate={-2} delay={0}>
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#E8A317] border-2 border-[#15110F] shadow-[2px_2px_0px_#15110F] font-mono text-xs font-bold uppercase tracking-widest text-[#15110F]">
+                <Sparkles size={12} />
+                <span>The Artists Behind the Chair</span>
+              </div>
+            </StickerDrop>
+            <DieCutSticker variant="scissors" rotate={-4} delay={0.1} />
+            <DieCutSticker variant="blowdryer" rotate={5} delay={0.2} />
           </div>
           <h1 className="font-display font-extrabold text-h1 text-[#15110F]">
             Meet Our Team
@@ -248,10 +250,12 @@ export const StylistDetailPage: React.FC = () => {
 
         <div className="lg:col-span-8 space-y-6">
           <div className="flex items-center gap-3 flex-wrap">
-            <span className="px-3 py-1 rounded-full bg-[#E8A317] border-2 border-[#15110F] font-mono text-xs font-bold uppercase tracking-wider text-[#15110F]">
-              {stylist.title || 'Senior Stylist'}
-            </span>
-            <DieCutSticker variant="scissors" rotate={-4} />
+            <StickerDrop rotate={-2} delay={0}>
+              <span className="inline-block px-3 py-1 rounded-full bg-[#E8A317] border-2 border-[#15110F] shadow-[2px_2px_0px_#15110F] font-mono text-xs font-bold uppercase tracking-wider text-[#15110F]">
+                {stylist.title || 'Senior Stylist'}
+              </span>
+            </StickerDrop>
+            <DieCutSticker variant="scissors" rotate={-4} delay={0.12} />
             <SampleTag isSample={stylist.is_sample} />
           </div>
 

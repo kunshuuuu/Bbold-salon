@@ -5,7 +5,7 @@ import { Clock, Printer, Search, Sparkles, ArrowUpRight, MessageSquare } from 'l
 import { getPublicServices } from '../lib/content';
 import { formatINR } from '../config/site';
 import { SampleTag } from '../components/common/SampleTag';
-import { CutLine, DieCutSticker } from '../components/public/GlobalEffects';
+import { CutLine, DieCutSticker, StickerDrop } from '../components/public/GlobalEffects';
 import type { AudienceType, Service } from '../types/database';
 
 const CATEGORIES = ['All', 'Hair', 'Men', 'Nails', 'Makeup', 'Skin'] as const;
@@ -91,12 +91,14 @@ export const ServicesPage: React.FC = () => {
       <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 pb-10 border-b-[2.5px] border-[#15110F]">
         <div className="space-y-3">
           <div className="flex flex-wrap items-center gap-3">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#E8A317] border-2 border-[#15110F] font-mono text-xs font-bold uppercase tracking-widest text-[#15110F]">
-              <Sparkles size={12} />
-              <span>Full Salon Menu · Transparent Pricing</span>
-            </div>
-            <DieCutSticker variant="scissors" rotate={-4} />
-            <DieCutSticker variant="comb" rotate={5} />
+            <StickerDrop rotate={-2} delay={0}>
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#E8A317] border-2 border-[#15110F] shadow-[2px_2px_0px_#15110F] font-mono text-xs font-bold uppercase tracking-widest text-[#15110F]">
+                <Sparkles size={12} />
+                <span>Full Salon Menu · Transparent Pricing</span>
+              </div>
+            </StickerDrop>
+            <DieCutSticker variant="scissors" rotate={-4} delay={0.1} />
+            <DieCutSticker variant="comb" rotate={5} delay={0.2} />
           </div>
           <h1 className="font-display font-extrabold text-h1 text-[#15110F]">
             Services &amp; Rate Card
@@ -284,8 +286,11 @@ export const ServicesPage: React.FC = () => {
       {/* Bottom Consultation Callout */}
       <div className="p-8 sm:p-10 rounded-3xl bg-[#E9DDD0] border border-[#15110F]/15 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 no-print">
         <div className="space-y-2">
-          <div className="font-mono text-xs uppercase tracking-widest text-[#C4262E]">
-            Complimentary Texture &amp; Tone Check
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="font-mono text-xs uppercase tracking-widest text-[#C4262E]">
+              Complimentary Texture &amp; Tone Check
+            </div>
+            <DieCutSticker variant="sparkle-badge" rotate={-3} delay={0.08} />
           </div>
           <h3 className="font-display text-2xl font-bold text-[#15110F]">
             Not sure what you need? Book a consultation or message us.

@@ -6,8 +6,10 @@ import { SampleTag } from '../common/SampleTag';
 interface BeforeAfterSliderProps {
   beforeUrl?: string | null;
   afterUrl?: string | null;
+  title?: string | null;
   caption?: string | null;
   category?: string | null;
+  detailNote?: string | null;
   isSample?: boolean;
   className?: string;
 }
@@ -15,8 +17,10 @@ interface BeforeAfterSliderProps {
 export const BeforeAfterSlider: React.FC<BeforeAfterSliderProps> = ({
   beforeUrl,
   afterUrl,
+  title,
   caption,
   category,
+  detailNote,
   isSample,
   className = '',
 }) => {
@@ -151,18 +155,32 @@ export const BeforeAfterSlider: React.FC<BeforeAfterSliderProps> = ({
         </div>
       </div>
 
-      {/* Caption bar */}
-      {(caption || category || isSample) && (
-        <div className="mt-3 flex items-center justify-between gap-2 text-xs">
-          <div className="text-[#15110F]/80 font-medium">
-            {category && (
-              <span className="font-mono uppercase tracking-wider text-[#C4262E] mr-2">
-                [{category}]
-              </span>
-            )}
-            <span>{caption || 'Drag slider or use Left/Right keys to compare'}</span>
+      {/* Caption & Details Card */}
+      {(title || caption || category || detailNote || isSample) && (
+        <div className="mt-3 p-4 rounded-2xl bg-[#F5F0E8] border-2 border-[#15110F] shadow-[3px_3px_0px_#15110F] space-y-1.5">
+          <div className="flex items-center justify-between gap-2 flex-wrap">
+            <div className="flex items-center gap-2 flex-wrap">
+              {category && (
+                <span className="px-2.5 py-0.5 rounded-full bg-[#E8A317] border border-[#15110F] font-mono text-[10px] font-bold uppercase tracking-wider text-[#15110F]">
+                  {category}
+                </span>
+              )}
+              {detailNote && (
+                <span className="font-mono text-[10px] font-semibold uppercase tracking-wider text-[#C4262E]">
+                  {detailNote}
+                </span>
+              )}
+            </div>
+            <SampleTag isSample={isSample} />
           </div>
-          <SampleTag isSample={isSample} />
+          {title && (
+            <h3 className="font-display font-bold text-base sm:text-lg text-[#15110F]">
+              {title}
+            </h3>
+          )}
+          <p className="text-xs sm:text-sm text-[#15110F]/80 leading-relaxed">
+            {caption || 'Drag slider or use Left/Right keys to compare'}
+          </p>
         </div>
       )}
     </div>

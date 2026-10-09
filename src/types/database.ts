@@ -194,11 +194,73 @@ export interface FooterSiteText {
   final_line: string;
 }
 
+export interface StationCardDetailItem {
+  label: string;
+  value: string;
+}
+
+export interface HomepageStationCard {
+  id: string;
+  num: string;
+  title: string;
+  description: string;
+  categoryKey: string;
+  room: RoomId;
+  slot: string;
+  image_url: string | null;
+  image_alt?: string | null;
+  details: StationCardDetailItem[];
+  linkTo: string;
+  linkLabel: string;
+  is_active: boolean;
+  sort_order: number;
+}
+
+export interface HomepageStationsSection {
+  eyebrow: string;
+  heading: string;
+  cards: HomepageStationCard[];
+}
+
+export interface HomepageBeforeAfterConfig {
+  before_image_url: string | null;
+  after_image_url: string | null;
+  category: string;
+  title: string;
+  caption: string;
+  detail_note?: string;
+}
+
+export interface HomepageTransformationCard {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  detail_tag?: string;
+  image_url: string | null;
+  before_image_url?: string | null;
+  slot?: string;
+  linkTo: string;
+  is_active: boolean;
+  sort_order: number;
+}
+
+export interface HomepageTransformationsSection {
+  eyebrow: string;
+  heading: string;
+  ctaLabel: string;
+  ctaLink: string;
+  beforeAfter: HomepageBeforeAfterConfig;
+  cards: HomepageTransformationCard[];
+}
+
 export interface SiteTextsMap {
   hero: HeroSiteText;
   announcement: AnnouncementSiteText;
   marquee: MarqueeSiteText;
   footer: FooterSiteText;
+  stations?: HomepageStationsSection;
+  transformations?: HomepageTransformationsSection;
 }
 
 export interface SampleContentCounts {

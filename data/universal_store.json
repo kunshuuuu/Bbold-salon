@@ -1,0 +1,257 @@
+{
+  "bbold_admin_stations_v1": {
+    "eyebrow": "02 / Six Stations Under One Roof",
+    "heading": "Pick Your Chair or Classroom",
+    "cards": [
+      {
+        "id": "station-card-01",
+        "num": "01",
+        "title": "Hair Salon",
+        "description": "Precision cuts, dimensional balayage, root touch-ups, keratin smoothing, and restorative hair spas.",
+        "categoryKey": "Hair",
+        "room": "hair",
+        "slot": "station_1",
+        "image_url": "https://cjvjvfdtrudjmwfusbes.supabase.co/storage/v1/object/public/media/site-slots/1791523497824-anx0tn.webp",
+        "image_alt": "Station 01: Hair Salon at Bbold Mumbai",
+        "details": [
+          {
+            "label": "Women's Haircut",
+            "value": "from ₹1,200"
+          },
+          {
+            "label": "Kids' Haircut",
+            "value": "from ₹600"
+          },
+          {
+            "label": "Trim & Fringe",
+            "value": "from ₹600"
+          },
+          {
+            "label": "Wash & Blow-dry",
+            "value": "from ₹700"
+          }
+        ],
+        "linkTo": "/services?category=Hair",
+        "linkLabel": "Explore Hair Menu →",
+        "is_active": true,
+        "sort_order": 1
+      },
+      {
+        "id": "station-card-02",
+        "num": "02",
+        "title": "Men's Grooming",
+        "description": "Sharp haircut & styling, beard trim and hot-towel shave, express detan, and grey blending.",
+        "categoryKey": "Men's Grooming",
+        "room": "hair",
+        "slot": "station_2",
+        "image_url": "https://cjvjvfdtrudjmwfusbes.supabase.co/storage/v1/object/public/media/site-slots/1791524410679-2uj7qp.webp",
+        "image_alt": "Station 02: Men's Grooming at Bbold Mumbai",
+        "details": [
+          {
+            "label": "Men's Haircut",
+            "value": "from ₹600"
+          },
+          {
+            "label": "Haircut & Styling",
+            "value": "from ₹800"
+          },
+          {
+            "label": "Beard Trim & Shape",
+            "value": "from ₹400"
+          },
+          {
+            "label": "Clean Shave",
+            "value": "from ₹350"
+          }
+        ],
+        "linkTo": "/services?category=Men",
+        "linkLabel": "Explore Men's Menu →",
+        "is_active": true,
+        "sort_order": 2
+      },
+      {
+        "id": "station-card-03",
+        "num": "03",
+        "title": "Nail Studio",
+        "description": "Gel polish manicures, soft-gel & acrylic extensions, custom nail art, and spa pedicures.",
+        "categoryKey": "Nails",
+        "room": "nails",
+        "slot": "station_3",
+        "image_url": null,
+        "image_alt": "Station 03: Nail Studio at Bbold Mumbai",
+        "details": [
+          {
+            "label": "Classic Manicure",
+            "value": "from ₹500"
+          },
+          {
+            "label": "Spa Pedicure",
+            "value": "from ₹1,100"
+          },
+          {
+            "label": "Gel Polish Application",
+            "value": "from ₹900"
+          },
+          {
+            "label": "Nail Extensions (Gel / Acrylic)",
+            "value": "from ₹2,800"
+          }
+        ],
+        "linkTo": "/services?category=Nails",
+        "linkLabel": "Explore Nail Studio →",
+        "is_active": true,
+        "sort_order": 3
+      },
+      {
+        "id": "station-card-04",
+        "num": "04",
+        "title": "Makeup & Bridal",
+        "description": "Cocktail & party glam, pre-bridal trials, HD & airbrush bridal styling, and saree draping.",
+        "categoryKey": "Makeup",
+        "room": "makeup",
+        "slot": "station_4",
+        "image_url": null,
+        "image_alt": "Station 04: Makeup & Bridal Studio at Bbold Mumbai",
+        "details": [
+          {
+            "label": "Party Makeup",
+            "value": "from ₹3,500"
+          },
+          {
+            "label": "Party Makeup & Hairstyle",
+            "value": "from ₹5,000"
+          },
+          {
+            "label": "Engagement Makeup",
+            "value": "from ₹9,000"
+          },
+          {
+            "label": "Bridal Makeup",
+            "value": "from ₹20,000"
+          }
+        ],
+        "linkTo": "/bridal",
+        "linkLabel": "Explore Bridal Studio →",
+        "is_active": true,
+        "sort_order": 4
+      },
+      {
+        "id": "station-card-05",
+        "num": "05",
+        "title": "Skin & Facials",
+        "description": "Classic clean-ups, brightening & hydrating facials, chemical peels, waxing, and threading.",
+        "categoryKey": "Skin",
+        "room": "skin",
+        "slot": "station_5",
+        "image_url": "https://cjvjvfdtrudjmwfusbes.supabase.co/storage/v1/object/public/media/site-slots/1791524295827-38dh5u.webp",
+        "image_alt": "Station 05: Skin & Facials at Bbold Mumbai",
+        "details": [
+          {
+            "label": "Classic Clean-Up",
+            "value": "from ₹900"
+          },
+          {
+            "label": "Hydrating Facial",
+            "value": "from ₹2,000"
+          },
+          {
+            "label": "Brightening / Detan Facial",
+            "value": "from ₹2,200"
+          },
+          {
+            "label": "Anti-ageing Facial",
+            "value": "from ₹3,000"
+          }
+        ],
+        "linkTo": "/services?category=Skin",
+        "linkLabel": "Explore Skin Menu →",
+        "is_active": true,
+        "sort_order": 5
+      },
+      {
+        "id": "station-card-06",
+        "num": "06",
+        "title": "Bbold Academy",
+        "description": "Hands-on professional courses in hairdressing, bridal makeup, nail extensions, and cosmetology.",
+        "categoryKey": "Academy",
+        "room": "academy",
+        "slot": "station_6",
+        "image_url": null,
+        "image_alt": "Station 06: Bbold Academy in Mumbai",
+        "details": [
+          {
+            "label": "Professional Hairdressing Course",
+            "value": "12 Weeks"
+          },
+          {
+            "label": "Bridal & Event Makeup Artistry",
+            "value": "8 Weeks"
+          },
+          {
+            "label": "Nail Art & Extension Technician",
+            "value": "4 Weeks"
+          }
+        ],
+        "linkTo": "/academy",
+        "linkLabel": "Explore Courses →",
+        "is_active": true,
+        "sort_order": 6
+      }
+    ]
+  },
+  "bbold_admin_transformations_v1": {
+    "eyebrow": "04 / Real Transformations",
+    "heading": "Before & After Lookbook",
+    "ctaLabel": "Open full gallery →",
+    "ctaLink": "/gallery",
+    "beforeAfter": {
+      "before_image_url": null,
+      "after_image_url": null,
+      "category": "Hair Colour",
+      "title": "Dimensional Caramel Balayage & Gloss Finish",
+      "caption": "Warm caramel balayage blended from natural dark roots with a bond-protecting gloss toner — drag handle to compare.",
+      "detail_note": "Freehand Balayage · Gloss Toner · Precision Blow-Dry"
+    },
+    "cards": [
+      {
+        "id": "transform-card-01",
+        "title": "Long Layered Blow-Dry & Curtain Fringe",
+        "description": "Section-by-section layered haircut with face-framing curtain fringe and a bouncy round-brush blowout.",
+        "category": "Hair",
+        "detail_tag": "Cut & Blow-Dry",
+        "image_url": null,
+        "before_image_url": null,
+        "slot": "transform_card_1",
+        "linkTo": "/gallery",
+        "is_active": true,
+        "sort_order": 1
+      },
+      {
+        "id": "transform-card-02",
+        "title": "Soft-Matte Bridal & Reception Glam",
+        "description": "HD skin preparation, warm bronze eye detailing, custom lash placement, and sculpted reception hairstyling.",
+        "category": "Makeup",
+        "detail_tag": "Bridal & Makeup",
+        "image_url": null,
+        "before_image_url": null,
+        "slot": "transform_card_2",
+        "linkTo": "/gallery",
+        "is_active": true,
+        "sort_order": 2
+      },
+      {
+        "id": "transform-card-03",
+        "title": "Almond Gel Extensions & Micro-French Art",
+        "description": "Custom soft-gel extensions shaped to a clean almond silhouette with glossy crimson micro-French tips.",
+        "category": "Nails",
+        "detail_tag": "Nail Studio",
+        "image_url": null,
+        "before_image_url": null,
+        "slot": "transform_card_3",
+        "linkTo": "/gallery",
+        "is_active": true,
+        "sort_order": 3
+      }
+    ]
+  }
+}

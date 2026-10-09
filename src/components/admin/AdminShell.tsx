@@ -22,6 +22,8 @@ import {
   Menu,
   X,
   RefreshCw,
+  Layers,
+  Sparkles,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { adminGetAppointments } from '../../lib/adminApi';
@@ -52,12 +54,14 @@ const SIDEBAR_GROUPS: NavGroup[] = [
   {
     groupLabel: 'WEBSITE CONTENT',
     items: [
+      { to: '/admin/stations', label: '02 / Six Stations', icon: Layers },
+      { to: '/admin/transformations', label: '04 / Transformations', icon: Sparkles },
+      { to: '/admin/photos', label: 'Photos & gallery', icon: ImageIcon },
       { to: '/admin/services', label: 'Services', icon: Scissors },
       { to: '/admin/stylists', label: 'Stylists', icon: Users },
       { to: '/admin/courses', label: 'Courses', icon: GraduationCap },
       { to: '/admin/testimonials', label: 'Testimonials', icon: MessageSquareQuote },
       { to: '/admin/faq', label: 'FAQ', icon: HelpCircle },
-      { to: '/admin/photos', label: 'Photos & gallery', icon: ImageIcon },
     ],
   },
   {

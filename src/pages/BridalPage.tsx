@@ -7,7 +7,7 @@ import { formatINR } from '../config/site';
 import { Img } from '../components/visual/Img';
 import { SampleTag } from '../components/common/SampleTag';
 import { EnquiryFormCard } from '../components/public/EnquiryFormCard';
-import { CutLine, DieCutSticker } from '../components/public/GlobalEffects';
+import { CutLine, DieCutSticker, StickerDrop } from '../components/public/GlobalEffects';
 import type { GalleryItem, Service } from '../types/database';
 
 const BRIDAL_TIMELINE = [
@@ -84,12 +84,14 @@ export const BridalPage: React.FC = () => {
       <section className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center pb-16 border-b-[2.5px] border-[#15110F]">
         <div className="lg:col-span-7 space-y-6">
           <div className="flex flex-wrap items-center gap-3">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#F2C9C0] border-2 border-[#15110F] font-mono text-xs font-bold uppercase tracking-widest text-[#15110F]">
-              <Sparkles size={13} className="text-[#C4262E]" />
-              <span>Bridal &amp; Occasion Styling · Mumbai</span>
-            </div>
-            <DieCutSticker variant="lipstick" rotate={-4} />
-            <DieCutSticker variant="mirror" rotate={5} />
+            <StickerDrop rotate={-2} delay={0}>
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#F2C9C0] border-2 border-[#15110F] shadow-[2px_2px_0px_#15110F] font-mono text-xs font-bold uppercase tracking-widest text-[#15110F]">
+                <Sparkles size={13} className="text-[#C4262E]" />
+                <span>Bridal &amp; Occasion Styling · Mumbai</span>
+              </div>
+            </StickerDrop>
+            <DieCutSticker variant="lipstick" rotate={-4} delay={0.1} />
+            <DieCutSticker variant="mirror" rotate={5} delay={0.2} />
           </div>
 
           <h1 className="font-display font-extrabold text-hero text-[#15110F]">
@@ -133,8 +135,11 @@ export const BridalPage: React.FC = () => {
       <section className="space-y-8 pb-16 border-b-[2.5px] border-[#15110F]">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b-[2.5px] border-[#15110F] pb-4">
           <div>
-            <div className="font-mono text-xs uppercase tracking-widest text-[#C4262E]">
-              01 / Bridal &amp; Occasion Menu
+            <div className="flex items-center gap-3">
+              <div className="font-mono text-xs uppercase tracking-widest text-[#C4262E]">
+                01 / Bridal &amp; Occasion Menu
+              </div>
+              <DieCutSticker variant="crown" rotate={-4} delay={0.08} />
             </div>
             <h2 className="font-display text-3xl sm:text-4xl font-bold text-[#15110F] mt-1">
               Bridal &amp; Party Packages
@@ -201,14 +206,16 @@ export const BridalPage: React.FC = () => {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {BRIDAL_TIMELINE.map((item) => (
+          {BRIDAL_TIMELINE.map((item, idx) => (
             <div
               key={item.step}
               className="p-5 rounded-2xl bg-[#F5F0E8] border-2 border-[#15110F] shadow-[3px_3px_0px_#15110F] space-y-2.5"
             >
-              <span className="inline-block px-2.5 py-0.5 rounded-full bg-[#F2C9C0] border border-[#15110F] font-mono text-xs font-bold text-[#15110F]">
-                Step {item.step}
-              </span>
+              <StickerDrop rotate={idx % 2 === 0 ? -3 : 3} delay={0.05 * idx} dropDistance={100}>
+                <span className="inline-block px-2.5 py-0.5 rounded-full bg-[#F2C9C0] border border-[#15110F] shadow-[2px_2px_0px_#15110F] font-mono text-xs font-bold text-[#15110F]">
+                  Step {item.step}
+                </span>
+              </StickerDrop>
               <h3 className="font-display font-bold text-lg text-[#15110F]">{item.title}</h3>
               <p className="text-xs text-[#15110F]/80 leading-relaxed">{item.description}</p>
             </div>

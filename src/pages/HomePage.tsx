@@ -18,7 +18,11 @@ import {
   getPublicTestimonials,
   getPublicGalleryItems,
 } from '../lib/content';
-import { formatINR } from '../config/site';
+import {
+  formatINR,
+  DEFAULT_HOMEPAGE_STATIONS_SECTION,
+  DEFAULT_HOMEPAGE_TRANSFORMATIONS_SECTION,
+} from '../config/site';
 import { useSiteData } from '../context/SiteDataContext';
 import { Img } from '../components/visual/Img';
 import { Illustration } from '../components/visual/IllustrationKit';
@@ -28,6 +32,7 @@ import {
   MarqueeBand,
   CutLine,
   DieCutSticker,
+  StickerDrop,
   CountUpNumber,
 } from '../components/public/GlobalEffects';
 import { BeforeAfterSlider } from '../components/public/BeforeAfterSlider';
@@ -89,87 +94,43 @@ const HERO_CARDS: {
   },
 ];
 
-const SIX_STATIONS: {
-  num: string;
-  title: string;
-  categoryKey: string;
-  room: RoomId;
-  slot: ImageSlotId;
-  description: string;
-  linkTo: string;
-  linkLabel: string;
-}[] = [
-  {
-    num: '01',
-    title: 'Hair Salon',
-    categoryKey: 'Hair',
-    room: 'hair',
-    slot: 'cat_hair',
-    description:
-      'Precision cuts, dimensional balayage, root touch-ups, keratin smoothing, and restorative hair spas.',
-    linkTo: '/services?category=Hair',
-    linkLabel: 'Explore Hair Menu →',
-  },
-  {
-    num: '02',
-    title: "Men's Grooming",
-    categoryKey: "Men's Grooming",
-    room: 'hair',
-    slot: 'cat_men',
-    description:
-      'Sharp haircut & styling, beard trim and hot-towel shave, express detan, and grey blending.',
-    linkTo: '/services?category=Men',
-    linkLabel: "Explore Men's Menu →",
-  },
-  {
-    num: '03',
-    title: 'Nail Studio',
-    categoryKey: 'Nails',
-    room: 'nails',
-    slot: 'cat_nails',
-    description:
-      'Gel polish manicures, soft-gel & acrylic extensions, custom nail art, and spa pedicures.',
-    linkTo: '/services?category=Nails',
-    linkLabel: 'Explore Nail Studio →',
-  },
-  {
-    num: '04',
-    title: 'Makeup & Bridal',
-    categoryKey: 'Makeup',
-    room: 'makeup',
-    slot: 'cat_makeup',
-    description:
-      'Cocktail & party glam, pre-bridal trials, HD & airbrush bridal styling, and saree draping.',
-    linkTo: '/bridal',
-    linkLabel: 'Explore Bridal Studio →',
-  },
-  {
-    num: '05',
-    title: 'Skin & Facials',
-    categoryKey: 'Skin',
-    room: 'skin',
-    slot: 'cat_skin',
-    description:
-      'Classic clean-ups, brightening & hydrating facials, chemical peels, waxing, and threading.',
-    linkTo: '/services?category=Skin',
-    linkLabel: 'Explore Skin Menu →',
-  },
-  {
-    num: '06',
-    title: 'Bbold Academy',
-    categoryKey: 'Academy',
-    room: 'academy',
-    slot: 'academy_hero',
-    description:
-      'Hands-on professional courses in hairdressing, bridal makeup, nail extensions, and cosmetology.',
-    linkTo: '/academy',
-    linkLabel: 'Explore Courses →',
-  },
-];
-
 export const HomePage: React.FC = () => {
   const { setActiveRoom } = useOutletContext<OutletRoomContext>();
-  const { siteTexts, salonSettings, businessHours } = useSiteData();
+  const { siteImages, siteTexts, salonSettings, businessHours } = useSiteData();
+
+  const stationsSection = useMemo(() => {
+    const raw = siteTexts.stations || DEFAULT_HOMEPAGE_STATIONS_SECTION;
+    const cards = (Array.isArray(raw.cards) ? raw.cards : DEFAULT_HOMEPAGE_STATIONS_SECTION.cards)
+      .filter((c) => c.is_active !== false)
+      .slice()
+      .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+    return {
+      eyebrow: raw.eyebrow || DEFAULT_HOMEPAGE_STATIONS_SECTION.eyebrow,
+      heading: raw.heading || DEFAULT_HOMEPAGE_STATIONS_SECTION.heading,
+      cards,
+    };
+  }, [siteTexts.stations]);
+
+  const transformationsSection = useMemo(() => {
+    const raw = siteTexts.transformations || DEFAULT_HOMEPAGE_TRANSFORMATIONS_SECTION;
+    const cards = (
+      Array.isArray(raw.cards) ? raw.cards : DEFAULT_HOMEPAGE_TRANSFORMATIONS_SECTION.cards
+    )
+      .filter((c) => c.is_active !== false)
+      .slice()
+      .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+    return {
+      eyebrow: raw.eyebrow || DEFAULT_HOMEPAGE_TRANSFORMATIONS_SECTION.eyebrow,
+      heading: raw.heading || DEFAULT_HOMEPAGE_TRANSFORMATIONS_SECTION.heading,
+      ctaLabel: raw.ctaLabel || DEFAULT_HOMEPAGE_TRANSFORMATIONS_SECTION.ctaLabel,
+      ctaLink: raw.ctaLink || DEFAULT_HOMEPAGE_TRANSFORMATIONS_SECTION.ctaLink,
+      beforeAfter: {
+        ...DEFAULT_HOMEPAGE_TRANSFORMATIONS_SECTION.beforeAfter,
+        ...(raw.beforeAfter || {}),
+      },
+      cards,
+    };
+  }, [siteTexts.transformations]);
 
   const [services, setServices] = useState<Service[]>([]);
   const [stylists, setStylists] = useState<Stylist[]>([]);
@@ -317,12 +278,14 @@ export const HomePage: React.FC = () => {
           {/* Left 7 Columns */}
           <div className="lg:col-span-7 space-y-6 relative z-10">
             <div className="flex flex-wrap items-center gap-3">
-              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#E8A317] border-2 border-[#15110F] shadow-[3px_3px_0px_#15110F] font-mono text-xs font-bold uppercase tracking-[0.12em] text-[#15110F]">
-                <Sparkles size={13} className="text-[#C4262E]" />
-                <span>Salon · Academy · Mumbai</span>
-              </div>
-              <DieCutSticker variant="scissors" rotate={-4} />
-              <DieCutSticker variant="blowdryer" rotate={5} />
+              <StickerDrop rotate={-2} delay={0}>
+                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#E8A317] border-2 border-[#15110F] shadow-[3px_3px_0px_#15110F] font-mono text-xs font-bold uppercase tracking-[0.12em] text-[#15110F]">
+                  <Sparkles size={13} className="text-[#C4262E]" />
+                  <span>Salon · Academy · Mumbai</span>
+                </div>
+              </StickerDrop>
+              <DieCutSticker variant="scissors" rotate={-4} delay={0.1} />
+              <DieCutSticker variant="blowdryer" rotate={5} delay={0.2} />
             </div>
 
             {/* Big Hero Title Card with Visible Black Border, Red & Black Dual-Color Text, Shadows & Left-to-Right Hover Underlines */}
@@ -585,10 +548,10 @@ export const HomePage: React.FC = () => {
         <div className="max-w-[1440px] mx-auto px-4 sm:px-8 mb-10 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
           <div>
             <div className="font-mono text-xs font-bold uppercase tracking-[0.14em] text-[#C4262E]">
-              02 / Six Stations Under One Roof
+              {stationsSection.eyebrow}
             </div>
             <h2 className="font-display font-extrabold text-h1 text-[#15110F] mt-2">
-              Pick Your Chair or Classroom
+              {stationsSection.heading}
             </h2>
           </div>
           <div className="flex flex-wrap items-center gap-3">
@@ -619,26 +582,62 @@ export const HomePage: React.FC = () => {
         {/* Horizontal snap track without any scrollbar slider */}
         <div
           ref={stationsTrackRef}
-          className="no-scrollbar flex gap-6 overflow-x-auto snap-x snap-mandatory px-4 sm:px-8 pb-2 max-w-[1440px] mx-auto scroll-smooth"
+          className="no-scrollbar flex gap-6 overflow-x-auto snap-x snap-mandatory px-4 sm:px-8 pt-4 pb-3 max-w-[1440px] mx-auto scroll-smooth"
         >
-          {SIX_STATIONS.map((st) => {
+          {stationsSection.cards.map((st) => {
+            const catKeyLower = (st.categoryKey || st.title || '').toLowerCase();
             const catServices = services
-              .filter((s) =>
-                s.category.toLowerCase().includes(st.categoryKey.toLowerCase())
-              )
+              .filter((s) => s.category.toLowerCase().includes(catKeyLower))
               .slice(0, 4);
+
+            const legacyCategorySlot = catKeyLower.includes('men')
+              ? 'cat_men'
+              : catKeyLower.includes('nail')
+              ? 'cat_nails'
+              : catKeyLower.includes('makeup') || catKeyLower.includes('bridal')
+              ? 'cat_makeup'
+              : catKeyLower.includes('skin')
+              ? 'cat_skin'
+              : catKeyLower.includes('academy')
+              ? 'academy_hero'
+              : 'cat_hair';
+
+            const resolvedStationImg =
+              st.image_url ||
+              (st.slot ? siteImages[st.slot]?.image_url : null) ||
+              siteImages[legacyCategorySlot]?.image_url ||
+              null;
+
+            const stationIllustration =
+              st.room === 'nails' || catKeyLower.includes('nail')
+                ? 'hand-with-nails'
+                : st.room === 'makeup' || catKeyLower.includes('makeup') || catKeyLower.includes('bridal')
+                ? 'lipstick-and-mirror'
+                : st.room === 'skin' || catKeyLower.includes('skin')
+                ? 'facial-jar-and-leaf'
+                : st.room === 'academy' || catKeyLower.includes('academy')
+                ? 'salon-chair'
+                : catKeyLower.includes('men')
+                ? 'man-profile-fade'
+                : 'profile-long-waves';
+
+            const customDetails = Array.isArray(st.details)
+              ? st.details.filter((d) => d.label && d.label.trim().length > 0)
+              : [];
 
             return (
               <article
-                key={st.num}
-                onMouseEnter={() => setActiveRoom(st.room)}
+                key={st.id || st.num}
+                onMouseEnter={() => setActiveRoom(st.room || 'hair')}
                 className="snap-start shrink-0 w-[85vw] sm:w-[70vw] max-w-[720px] rounded-3xl bg-[#F5F0E8] border-2 border-[#15110F] p-6 sm:p-8 grid grid-cols-1 md:grid-cols-12 gap-6 items-center shadow-[5px_5px_0px_#15110F]"
               >
                 <div className="md:col-span-5">
                   <Img
-                    slot={st.slot}
+                    src={resolvedStationImg}
+                    alt={st.image_alt || `${st.title} at Bbold Salon & Academy`}
                     mask="arch"
                     aspect="4/5"
+                    illustrationFallback={stationIllustration}
                     hoverZoom
                     className="w-full border-2 border-[#15110F]"
                   />
@@ -646,9 +645,11 @@ export const HomePage: React.FC = () => {
 
                 <div className="md:col-span-7 space-y-4">
                   <div className="flex items-center justify-between">
-                    <span className="font-mono text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full bg-[#E8A317] text-[#15110F] border border-[#15110F]">
-                      Station {st.num}
-                    </span>
+                    <StickerDrop rotate={-2} delay={0.04} dropDistance={110}>
+                      <span className="font-mono text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full bg-[#E8A317] text-[#15110F] border border-[#15110F] shadow-[2px_2px_0px_#15110F]">
+                        {st.num.toLowerCase().startsWith('station') ? st.num : `Station ${st.num}`}
+                      </span>
+                    </StickerDrop>
                     <DieCutSticker
                       variant={
                         st.room === 'nails'
@@ -662,6 +663,7 @@ export const HomePage: React.FC = () => {
                           : 'scissors'
                       }
                       rotate={3}
+                      delay={0.14}
                       className="scale-90"
                     />
                   </div>
@@ -672,8 +674,24 @@ export const HomePage: React.FC = () => {
 
                   <p className="text-sm text-[#15110F]/80 leading-relaxed">{st.description}</p>
 
-                  {/* Sample services + starting price pulled from DB */}
-                  {catServices.length > 0 ? (
+                  {/* Custom details configured in Admin OR fallback services/courses */}
+                  {customDetails.length > 0 ? (
+                    <ul className="space-y-1.5 pt-2 border-t-2 border-[#15110F] text-xs">
+                      {customDetails.map((item, dIdx) => (
+                        <li
+                          key={`${item.label}-${dIdx}`}
+                          className="flex items-center justify-between gap-2 text-[#15110F]"
+                        >
+                          <span className="truncate font-semibold">{item.label}</span>
+                          {item.value && (
+                            <span className="font-mono font-bold text-[#C4262E] shrink-0">
+                              {item.value}
+                            </span>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : catServices.length > 0 ? (
                     <ul className="space-y-1.5 pt-2 border-t-2 border-[#15110F] text-xs">
                       {catServices.map((srv) => (
                         <li
@@ -700,10 +718,10 @@ export const HomePage: React.FC = () => {
 
                   <div className="pt-2">
                     <Link
-                      to={st.linkTo}
+                      to={st.linkTo || '/services'}
                       className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#15110F] text-[#F5F0E8] hover:bg-[#C4262E] text-xs font-mono uppercase tracking-wider font-bold transition-colors"
                     >
-                      <span>{st.linkLabel}</span>
+                      <span>{st.linkLabel || 'Explore Station →'}</span>
                     </Link>
                   </div>
                 </div>
@@ -890,76 +908,123 @@ export const HomePage: React.FC = () => {
             <div>
               <div className="flex items-center gap-3 mb-2">
                 <span className="font-mono text-xs font-bold uppercase tracking-[0.14em] text-[#C4262E]">
-                  04 / Real Transformations
+                  {transformationsSection.eyebrow}
                 </span>
                 <DieCutSticker variant="mirror" rotate={4} />
               </div>
               <h2 className="font-display font-extrabold text-h1 text-[#15110F]">
-                Before &amp; After Lookbook
+                {transformationsSection.heading}
               </h2>
             </div>
             <Link
-              to="/gallery"
+              to={transformationsSection.ctaLink || '/gallery'}
               className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#15110F] text-[#F5F0E8] font-mono text-xs uppercase tracking-wider font-bold hover:bg-[#C4262E]"
             >
-              <span>Open full gallery →</span>
+              <span>{transformationsSection.ctaLabel || 'Open full gallery →'}</span>
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
             {/* Left 6 Columns: Interactive Drag Slider */}
             <div className="lg:col-span-6">
               <BeforeAfterSlider
-                beforeUrl={beforeAfterItem?.before_image_url}
-                afterUrl={beforeAfterItem?.image_url}
+                beforeUrl={
+                  transformationsSection.beforeAfter.before_image_url ||
+                  siteImages['transform_before']?.image_url ||
+                  beforeAfterItem?.before_image_url
+                }
+                afterUrl={
+                  transformationsSection.beforeAfter.after_image_url ||
+                  siteImages['transform_after']?.image_url ||
+                  beforeAfterItem?.image_url
+                }
+                title={transformationsSection.beforeAfter.title}
                 caption={
+                  transformationsSection.beforeAfter.caption ||
                   beforeAfterItem?.caption ||
                   'Dimensional colour & cut transformation — drag handle to compare'
                 }
-                category={beforeAfterItem?.category || 'Hair'}
-                isSample={beforeAfterItem?.is_sample}
+                category={
+                  transformationsSection.beforeAfter.category ||
+                  beforeAfterItem?.category ||
+                  'Hair'
+                }
+                detailNote={transformationsSection.beforeAfter.detail_note}
+                isSample={
+                  !transformationsSection.beforeAfter.before_image_url &&
+                  !transformationsSection.beforeAfter.after_image_url &&
+                  !siteImages['transform_before']?.image_url &&
+                  !siteImages['transform_after']?.image_url &&
+                  beforeAfterItem?.is_sample
+                }
               />
             </div>
 
-            {/* Right 6 Columns: 3 Asymmetric Masonry Lookbook Items */}
+            {/* Right 6 Columns: Editable Transformation Lookbook Cards */}
             <div className="lg:col-span-6 space-y-6">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                {lookbookTeaser.map((item, idx) => (
-                  <Link
-                    key={item.id}
-                    to="/gallery"
-                    data-cursor="view"
-                    className={`group block p-3 rounded-3xl bg-[#F5F0E8] border-2 border-[#15110F] shadow-[4px_4px_0px_#15110F] hover:shadow-[6px_6px_0px_#15110F] transition-all ${
-                      idx === 0 ? 'sm:col-span-2' : ''
-                    }`}
-                  >
-                    <Img
-                      src={item.image_url === 'ILLUSTRATION_AFTER' ? null : item.image_url}
-                      alt={item.caption || 'Bbold salon look'}
-                      aspect={idx === 0 ? '16/9' : '4/5'}
-                      mask="rounded"
-                      hoverZoom
-                      illustrationFallback={
-                        item.category === 'Makeup'
-                          ? 'lipstick-and-mirror'
-                          : item.category === 'Nails'
-                          ? 'hand-with-nails'
-                          : 'hair-dryer'
-                      }
-                    />
-                    <div className="mt-3 px-1 flex items-center justify-between gap-2">
-                      <div>
-                        <span className="font-mono text-[10px] font-bold uppercase tracking-widest text-[#C4262E]">
-                          {item.category || 'Salon'}
-                        </span>
-                        <p className="font-display font-bold text-sm text-[#15110F] line-clamp-1">
-                          {item.caption || 'Styled at Bbold Mumbai'}
-                        </p>
+                {transformationsSection.cards.map((card, idx) => {
+                  const fallbackGalleryItem = lookbookTeaser[idx];
+                  const resolvedCardImg =
+                    card.image_url ||
+                    (card.slot ? siteImages[card.slot]?.image_url : null) ||
+                    (fallbackGalleryItem?.image_url &&
+                    fallbackGalleryItem.image_url !== 'ILLUSTRATION_AFTER'
+                      ? fallbackGalleryItem.image_url
+                      : null);
+
+                  const catLower = (card.category || '').toLowerCase();
+                  const cardIllustration =
+                    catLower.includes('makeup') || catLower.includes('bridal')
+                      ? 'lipstick-and-mirror'
+                      : catLower.includes('nail')
+                      ? 'hand-with-nails'
+                      : catLower.includes('skin')
+                      ? 'facial-jar-and-leaf'
+                      : 'hair-dryer';
+
+                  return (
+                    <Link
+                      key={card.id || idx}
+                      to={card.linkTo || '/gallery'}
+                      data-cursor="view"
+                      className={`group block p-4 rounded-3xl bg-[#F5F0E8] border-2 border-[#15110F] shadow-[4px_4px_0px_#15110F] hover:shadow-[6px_6px_0px_#15110F] transition-all ${
+                        idx === 0 ? 'sm:col-span-2' : ''
+                      }`}
+                    >
+                      <Img
+                        src={resolvedCardImg}
+                        alt={card.title || 'Bbold salon transformation'}
+                        aspect={idx === 0 ? '16/9' : '4/5'}
+                        mask="rounded"
+                        hoverZoom
+                        illustrationFallback={cardIllustration}
+                      />
+                      <div className="mt-3.5 px-1 space-y-1.5">
+                        <div className="flex items-center justify-between gap-2 flex-wrap">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="font-mono text-[10px] font-bold uppercase tracking-widest text-[#C4262E]">
+                              {card.category || 'Salon'}
+                            </span>
+                            {card.detail_tag && (
+                              <span className="px-2 py-0.5 rounded-full bg-[#E8A317]/30 border border-[#15110F]/40 font-mono text-[10px] font-semibold text-[#15110F]">
+                                {card.detail_tag}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <h3 className="font-display font-bold text-base sm:text-lg text-[#15110F] group-hover:text-[#C4262E] transition-colors">
+                          {card.title || fallbackGalleryItem?.caption || 'Styled at Bbold Mumbai'}
+                        </h3>
+                        {card.description && (
+                          <p className="text-xs sm:text-sm text-[#15110F]/80 leading-relaxed">
+                            {card.description}
+                          </p>
+                        )}
                       </div>
-                      <SampleTag isSample={item.is_sample} />
-                    </div>
-                  </Link>
-                ))}
+                    </Link>
+                  );
+                })}
               </div>
             </div>
           </div>
@@ -1069,10 +1134,12 @@ export const HomePage: React.FC = () => {
         <div className="max-w-[1440px] mx-auto px-4 sm:px-8 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           <div className="lg:col-span-6 space-y-6">
             <div className="flex flex-wrap items-center gap-3">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#E8A317]/20 border border-[#E8A317] text-[#E8A317] font-mono text-xs font-bold uppercase tracking-widest">
-                <span>Bbold Training Academy</span>
-              </div>
-              <DieCutSticker variant="academy-star" rotate={4} />
+              <StickerDrop rotate={-2} delay={0.02}>
+                <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#E8A317]/20 border border-[#E8A317] text-[#E8A317] font-mono text-xs font-bold uppercase tracking-widest">
+                  <span>Bbold Training Academy</span>
+                </div>
+              </StickerDrop>
+              <DieCutSticker variant="academy-star" rotate={4} delay={0.14} />
             </div>
 
             <h2 className="font-display font-extrabold text-h1 text-[#F5F0E8]">
@@ -1226,10 +1293,12 @@ export const HomePage: React.FC = () => {
       <section className="py-20 lg:py-28 bg-[#C4262E] text-[#F5F0E8] relative overflow-hidden border-b-[2.5px] border-[#15110F]">
         <div className="max-w-[1440px] mx-auto px-4 sm:px-8 text-center space-y-6 relative z-10">
           <div className="flex flex-wrap items-center justify-center gap-3">
-            <div className="inline-block px-4 py-1.5 rounded-full bg-[#E8A317] text-[#15110F] border-2 border-[#15110F] font-mono text-xs font-bold uppercase tracking-widest shadow-[3px_3px_0px_#15110F]">
-              Walk-Ins Welcome · Prior Booking Recommended
-            </div>
-            <DieCutSticker variant="stamp" rotate={6} />
+            <StickerDrop rotate={-2} delay={0.02}>
+              <div className="inline-block px-4 py-1.5 rounded-full bg-[#E8A317] text-[#15110F] border-2 border-[#15110F] font-mono text-xs font-bold uppercase tracking-widest shadow-[3px_3px_0px_#15110F]">
+                Walk-Ins Welcome · Prior Booking Recommended
+              </div>
+            </StickerDrop>
+            <DieCutSticker variant="stamp" rotate={6} delay={0.16} />
           </div>
 
           <h2 className="font-display font-black text-hero text-[#F5F0E8] text-stroke-shadow-lg max-w-4xl mx-auto">

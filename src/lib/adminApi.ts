@@ -42,9 +42,29 @@ import type {
   Service,
   SiteImageRow,
   SiteTextsMap,
+  HomepageStationsSection,
+  HomepageTransformationsSection,
   Stylist,
   Testimonial,
 } from '../types/database';
+
+const ADMIN_AUTH_EMAIL = 'bboldmumbaisalon@gmail.com';
+const ADMIN_AUTH_PASS = 'bbold@2026';
+
+export async function ensureSupabaseAdminAuth(): Promise<void> {
+  if (!isSupabaseConfigured()) return;
+  try {
+    const { data } = await supabase.auth.getSession();
+    if (!data?.session) {
+      await supabase.auth.signInWithPassword({
+        email: ADMIN_AUTH_EMAIL,
+        password: ADMIN_AUTH_PASS,
+      });
+    }
+  } catch {
+    // ignore
+  }
+}
 
 // =============================================================================
 // BROWSER IMAGE RESIZER & WEBP CONVERTER (Max 1600px, WebP before upload)
@@ -121,6 +141,7 @@ export async function uploadMediaImage(file: File, folder = 'uploads'): Promise<
 
   if (isSupabaseConfigured()) {
     try {
+      await ensureSupabaseAdminAuth();
       const ext = processedBlob.type.includes('png')
         ? 'png'
         : processedBlob.type.includes('jpeg') || processedBlob.type.includes('jpg')
@@ -637,9 +658,28 @@ export async function adminGetGalleryItems(): Promise<GalleryItem[]> {
     .order('sort_order', { ascending: true });
   if (error || !data || data.length === 0) return localRows;
   const supaRows = data as GalleryItem[];
+  const localMap = new Map(localRows.map((r) => [r.id, r]));
+  const merged = supaRows.map((s) => {
+    const loc = localMap.get(s.id);
+    if (!loc) return s;
+    const locHasAfter = Boolean(loc.image_url && !loc.image_url.startsWith('ILLUSTRATION_'));
+    const supaHasAfter = Boolean(s.image_url && !s.image_url.startsWith('ILLUSTRATION_'));
+    const locHasBefore = Boolean(loc.before_image_url && !loc.before_image_url.startsWith('ILLUSTRATION_'));
+    const supaHasBefore = Boolean(s.before_image_url && !s.before_image_url.startsWith('ILLUSTRATION_'));
+    return {
+      ...s,
+      ...loc,
+      image_url: supaHasAfter ? s.image_url : locHasAfter ? loc.image_url : s.image_url,
+      before_image_url: supaHasBefore
+        ? s.before_image_url
+        : locHasBefore
+        ? loc.before_image_url
+        : s.before_image_url,
+    };
+  });
   const supaIds = new Set(supaRows.map((r) => r.id));
   const extraLocal = localRows.filter((r) => !supaIds.has(r.id) && !r.is_sample);
-  return [...extraLocal, ...supaRows];
+  return [...extraLocal, ...merged];
 }
 
 export async function adminUpsertGalleryItem(
@@ -649,14 +689,14 @@ export async function adminUpsertGalleryItem(
   const all = readLocalTable(LOCAL_STORAGE_KEYS.gallery_items, SAMPLE_GALLERY_ITEMS);
   let savedItem: GalleryItem;
 
-  if (item.id) {
+  if (item.id && all.some((g) => g.id === item.id)) {
     const updated = all.map((g) => (g.id === item.id ? ({ ...g, ...item } as GalleryItem) : g));
     await pushKeyToUniversalServer(LOCAL_STORAGE_KEYS.gallery_items, updated);
     savedItem = updated.find((g) => g.id === item.id)!;
   } else {
     const minOrder = all.reduce((min, g) => Math.min(min, g.sort_order ?? 1), 1);
     savedItem = {
-      id: crypto.randomUUID ? crypto.randomUUID() : `gal-${Date.now()}`,
+      id: item.id || (crypto.randomUUID ? crypto.randomUUID() : `gal-${Date.now()}`),
       image_url: item.image_url ?? null,
       before_image_url: item.before_image_url ?? null,
       caption: item.caption?.trim() || 'Salon Lookbook',
@@ -664,30 +704,21 @@ export async function adminUpsertGalleryItem(
       sort_order: item.sort_order ?? Math.max(0, minOrder - 1),
       is_active: item.is_active ?? true,
       is_sample: item.is_sample ?? false,
-      created_at: new Date().toISOString(),
+      created_at: item.created_at || new Date().toISOString(),
     };
-    const nextList = [savedItem, ...all];
+    const nextList = [savedItem, ...all.filter((g) => g.id !== savedItem.id)];
     await pushKeyToUniversalServer(LOCAL_STORAGE_KEYS.gallery_items, nextList);
   }
 
   if (isSupabaseConfigured()) {
     try {
-      if (item.id) {
-        const { data, error } = await supabase
-          .from('gallery_items')
-          .update(item)
-          .eq('id', item.id)
-          .select('*')
-          .single();
-        if (!error && data) return data as GalleryItem;
-      } else {
-        const { data, error } = await supabase
-          .from('gallery_items')
-          .insert(savedItem)
-          .select('*')
-          .single();
-        if (!error && data) return data as GalleryItem;
-      }
+      await ensureSupabaseAdminAuth();
+      const { data, error } = await supabase
+        .from('gallery_items')
+        .upsert(savedItem, { onConflict: 'id' })
+        .select('*')
+        .single();
+      if (!error && data) return data as GalleryItem;
     } catch {
       // Fallback to universal server copy
     }
@@ -705,6 +736,7 @@ export async function adminDeleteGalleryItem(id: string): Promise<void> {
 
   if (isSupabaseConfigured()) {
     try {
+      await ensureSupabaseAdminAuth();
       await supabase.from('gallery_items').delete().eq('id', id);
     } catch {
       // Ignore if Supabase delete fails
@@ -731,11 +763,209 @@ export async function adminUpsertSiteImage(
 
   if (isSupabaseConfigured()) {
     try {
+      await ensureSupabaseAdminAuth();
       await supabase.from('site_images').upsert(row, { onConflict: 'slot' });
     } catch {
       // Fallback to universal server copy
     }
   }
+
+  // If this slot belongs to a Homepage Station or Transformation card, sync it into site_texts too
+  try {
+    const texts = await getPublicSiteTexts();
+    let textsChanged = false;
+    if (texts.stations?.cards) {
+      const updatedCards = texts.stations.cards.map((c) => {
+        if (c.slot === slot) {
+          textsChanged = true;
+          return { ...c, image_url, image_alt: alt || c.image_alt };
+        }
+        return c;
+      });
+      if (textsChanged) {
+        texts.stations = { ...texts.stations, cards: updatedCards };
+      }
+    }
+    if (texts.transformations) {
+      if (slot === 'transform_before') {
+        texts.transformations.beforeAfter = {
+          ...texts.transformations.beforeAfter,
+          before_image_url: image_url,
+        };
+        textsChanged = true;
+      } else if (slot === 'transform_after') {
+        texts.transformations.beforeAfter = {
+          ...texts.transformations.beforeAfter,
+          after_image_url: image_url,
+        };
+        textsChanged = true;
+      } else if (texts.transformations.cards) {
+        const updatedTransCards = texts.transformations.cards.map((tc) => {
+          if (tc.slot === slot) {
+            textsChanged = true;
+            return { ...tc, image_url };
+          }
+          return tc;
+        });
+        if (textsChanged) {
+          texts.transformations = { ...texts.transformations, cards: updatedTransCards };
+        }
+      }
+    }
+    if (textsChanged) {
+      await pushKeyToUniversalServer(LOCAL_STORAGE_KEYS.site_texts, texts);
+      if (isSupabaseConfigured()) {
+        await ensureSupabaseAdminAuth();
+        await Promise.all([
+          texts.stations
+            ? supabase.from('site_texts').upsert(
+                {
+                  key: 'stations',
+                  value: texts.stations,
+                  updated_at: new Date().toISOString(),
+                },
+                { onConflict: 'key' }
+              )
+            : Promise.resolve(),
+          texts.transformations
+            ? supabase.from('site_texts').upsert(
+                {
+                  key: 'transformations',
+                  value: texts.transformations,
+                  updated_at: new Date().toISOString(),
+                },
+                { onConflict: 'key' }
+              )
+            : Promise.resolve(),
+        ]);
+      }
+    }
+  } catch {
+    // ignore secondary sync errors
+  }
+}
+
+export async function adminSaveStationsSection(
+  stations: HomepageStationsSection
+): Promise<HomepageStationsSection> {
+  await ensureUniversalStoreSynced();
+  const texts = await getPublicSiteTexts();
+  const updatedTexts: SiteTextsMap = {
+    ...texts,
+    stations,
+  };
+  await pushKeyToUniversalServer(LOCAL_STORAGE_KEYS.site_texts, updatedTexts);
+
+  // Sync station card images into site_images table/map as well
+  const currentImages = await getPublicSiteImages();
+  const nextImages = { ...currentImages };
+  for (const card of stations.cards) {
+    if (card.slot) {
+      nextImages[card.slot] = {
+        slot: card.slot,
+        image_url: card.image_url ?? null,
+        alt: card.image_alt || `${card.title} at Bbold Salon & Academy`,
+        updated_at: new Date().toISOString(),
+      };
+    }
+  }
+  await pushKeyToUniversalServer(LOCAL_STORAGE_KEYS.site_images, nextImages);
+
+  if (isSupabaseConfigured()) {
+    try {
+      await ensureSupabaseAdminAuth();
+      await supabase.from('site_texts').upsert(
+        {
+          key: 'stations',
+          value: stations,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: 'key' }
+      );
+      const imageRows = stations.cards
+        .filter((c) => Boolean(c.slot))
+        .map((c) => ({
+          slot: c.slot,
+          image_url: c.image_url ?? null,
+          alt: c.image_alt || `${c.title} at Bbold Salon & Academy`,
+          updated_at: new Date().toISOString(),
+        }));
+      if (imageRows.length > 0) {
+        await supabase.from('site_images').upsert(imageRows, { onConflict: 'slot' });
+      }
+    } catch {
+      // Fallback to universal server copy
+    }
+  }
+
+  return stations;
+}
+
+export async function adminSaveTransformationsSection(
+  transformations: HomepageTransformationsSection
+): Promise<HomepageTransformationsSection> {
+  await ensureUniversalStoreSynced();
+  const texts = await getPublicSiteTexts();
+  const updatedTexts: SiteTextsMap = {
+    ...texts,
+    transformations,
+  };
+  await pushKeyToUniversalServer(LOCAL_STORAGE_KEYS.site_texts, updatedTexts);
+
+  // Sync transformation images into site_images table/map as well
+  const currentImages = await getPublicSiteImages();
+  const nextImages: Record<string, SiteImageRow> = {
+    ...currentImages,
+    transform_before: {
+      slot: 'transform_before',
+      image_url: transformations.beforeAfter.before_image_url ?? null,
+      alt: `Before — ${transformations.beforeAfter.title || 'Bbold Transformation'}`,
+      updated_at: new Date().toISOString(),
+    },
+    transform_after: {
+      slot: 'transform_after',
+      image_url: transformations.beforeAfter.after_image_url ?? null,
+      alt: `After — ${transformations.beforeAfter.title || 'Bbold Transformation'}`,
+      updated_at: new Date().toISOString(),
+    },
+  };
+  for (const card of transformations.cards) {
+    if (card.slot) {
+      nextImages[card.slot] = {
+        slot: card.slot,
+        image_url: card.image_url ?? null,
+        alt: card.title || 'Bbold Transformation Lookbook',
+        updated_at: new Date().toISOString(),
+      };
+    }
+  }
+  await pushKeyToUniversalServer(LOCAL_STORAGE_KEYS.site_images, nextImages);
+
+  if (isSupabaseConfigured()) {
+    try {
+      await ensureSupabaseAdminAuth();
+      await supabase.from('site_texts').upsert(
+        {
+          key: 'transformations',
+          value: transformations,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: 'key' }
+      );
+      const imageRows: SiteImageRow[] = [
+        nextImages.transform_before,
+        nextImages.transform_after,
+        ...transformations.cards
+          .filter((c) => Boolean(c.slot))
+          .map((c) => nextImages[c.slot!]),
+      ];
+      await supabase.from('site_images').upsert(imageRows, { onConflict: 'slot' });
+    } catch {
+      // Fallback to universal server copy
+    }
+  }
+
+  return transformations;
 }
 
 // =============================================================================
@@ -808,16 +1038,25 @@ export async function adminSaveSalonSettings(settings: SalonSettings): Promise<v
 }
 
 export async function adminSaveSiteTexts(texts: SiteTextsMap): Promise<void> {
+  await ensureUniversalStoreSynced();
+  await pushKeyToUniversalServer(LOCAL_STORAGE_KEYS.site_texts, texts);
+
   if (!isSupabaseConfigured()) {
-    await pushKeyToUniversalServer(LOCAL_STORAGE_KEYS.site_texts, texts);
     return;
   }
+  await ensureSupabaseAdminAuth();
   const entries: Array<{ key: keyof SiteTextsMap; value: unknown }> = [
     { key: 'hero', value: texts.hero },
     { key: 'announcement', value: texts.announcement },
     { key: 'marquee', value: texts.marquee },
     { key: 'footer', value: texts.footer },
   ];
+  if (texts.stations) {
+    entries.push({ key: 'stations', value: texts.stations });
+  }
+  if (texts.transformations) {
+    entries.push({ key: 'transformations', value: texts.transformations });
+  }
   for (const entry of entries) {
     const { error } = await supabase.from('site_texts').upsert(
       {

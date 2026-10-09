@@ -32,7 +32,12 @@ import { Img } from '../components/visual/Img';
 import { Illustration } from '../components/visual/IllustrationKit';
 import { SampleTag } from '../components/common/SampleTag';
 import { EnquiryFormCard } from '../components/public/EnquiryFormCard';
-import { CutLine, DieCutSticker, MarqueeBand } from '../components/public/GlobalEffects';
+import {
+  CutLine,
+  DieCutSticker,
+  StickerDrop,
+  MarqueeBand,
+} from '../components/public/GlobalEffects';
 import type { FaqItem, Testimonial } from '../types/database';
 
 // =============================================================================
@@ -78,12 +83,14 @@ export const TestimonialsPage: React.FC = () => {
       <section className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 pb-10 border-b-[2.5px] border-[#15110F]">
         <div className="space-y-3">
           <div className="flex flex-wrap items-center gap-3">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#E8A317] border-2 border-[#15110F] font-mono text-xs font-bold uppercase tracking-widest text-[#15110F]">
-              <Sparkles size={12} />
-              <span>Client Voices</span>
-            </div>
-            <DieCutSticker variant="flower" rotate={-4} />
-            <DieCutSticker variant="lipstick" rotate={5} />
+            <StickerDrop rotate={-2} delay={0}>
+              <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#E8A317] border-2 border-[#15110F] shadow-[2px_2px_0px_#15110F] font-mono text-xs font-bold uppercase tracking-widest text-[#15110F]">
+                <Sparkles size={12} />
+                <span>Client Voices</span>
+              </div>
+            </StickerDrop>
+            <DieCutSticker variant="flower" rotate={-4} delay={0.1} />
+            <DieCutSticker variant="lipstick" rotate={5} delay={0.2} />
           </div>
           <h1 className="font-display font-extrabold text-h1 text-[#15110F]">
             Words From the Chair
@@ -324,12 +331,14 @@ export const AboutPage: React.FC = () => {
         <div className="max-w-[1440px] mx-auto px-4 sm:px-8 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           <div className="lg:col-span-7 space-y-6">
             <div className="flex flex-wrap items-center gap-3">
-              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#E8A317] border-2 border-[#15110F] shadow-[3px_3px_0px_#15110F] font-mono text-xs font-bold uppercase tracking-widest text-[#15110F]">
-                <Sparkles size={13} className="text-[#C4262E]" />
-                <span>About Bbold Salon &amp; Academy · Mumbai</span>
-              </div>
-              <DieCutSticker variant="scissors" rotate={-4} />
-              <DieCutSticker variant="blowdryer" rotate={5} />
+              <StickerDrop rotate={-2} delay={0}>
+                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#E8A317] border-2 border-[#15110F] shadow-[3px_3px_0px_#15110F] font-mono text-xs font-bold uppercase tracking-widest text-[#15110F]">
+                  <Sparkles size={13} className="text-[#C4262E]" />
+                  <span>About Bbold Salon &amp; Academy · Mumbai</span>
+                </div>
+              </StickerDrop>
+              <DieCutSticker variant="scissors" rotate={-4} delay={0.1} />
+              <DieCutSticker variant="blowdryer" rotate={5} delay={0.2} />
             </div>
 
             <div className="p-6 sm:p-8 rounded-3xl bg-[#F5F0E8] border-[3px] border-[#15110F] shadow-[6px_6px_0px_#15110F] space-y-3">
@@ -458,10 +467,12 @@ export const AboutPage: React.FC = () => {
               >
                 <div className="space-y-4">
                   <div className="flex items-center justify-between gap-2">
-                    <span className="px-3 py-1 rounded-full bg-[#E8A317] border-2 border-[#15110F] font-mono text-xs font-bold uppercase tracking-widest text-[#15110F]">
-                      Pillar {pillar.num}
-                    </span>
-                    <DieCutSticker variant={pillar.sticker} rotate={4} />
+                    <StickerDrop rotate={-2} delay={0.04} dropDistance={110}>
+                      <span className="inline-block px-3 py-1 rounded-full bg-[#E8A317] border-2 border-[#15110F] shadow-[2px_2px_0px_#15110F] font-mono text-xs font-bold uppercase tracking-widest text-[#15110F]">
+                        Pillar {pillar.num}
+                      </span>
+                    </StickerDrop>
+                    <DieCutSticker variant={pillar.sticker} rotate={4} delay={0.14} />
                   </div>
                   <h3 className="font-display text-2xl sm:text-3xl font-extrabold text-[#15110F]">
                     {pillar.title}
@@ -605,10 +616,12 @@ export const AboutPage: React.FC = () => {
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b-2 border-[#F5F0E8]/25 pb-6">
             <div>
               <div className="flex items-center gap-3 mb-2">
-                <span className="px-3 py-1 rounded-full bg-[#E8A317] text-[#15110F] font-mono text-xs font-bold uppercase tracking-widest">
-                  03 / Our Evolution
-                </span>
-                <DieCutSticker variant="comb" rotate={-5} />
+                <StickerDrop rotate={-2} delay={0.02}>
+                  <span className="inline-block px-3 py-1 rounded-full bg-[#E8A317] text-[#15110F] font-mono text-xs font-bold uppercase tracking-widest">
+                    03 / Our Evolution
+                  </span>
+                </StickerDrop>
+                <DieCutSticker variant="comb" rotate={-5} delay={0.14} />
               </div>
               <h2 className="font-display font-extrabold text-h1 text-[#F5F0E8]">
                 How Bbold Grew in Mumbai
@@ -642,12 +655,14 @@ export const AboutPage: React.FC = () => {
           <div className="p-8 sm:p-12 rounded-3xl bg-[#D7DFD4] border-2 border-[#15110F] shadow-[6px_6px_0px_#15110F] grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
             <div className="lg:col-span-8 space-y-4">
               <div className="flex flex-wrap items-center gap-3">
-                <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#F5F0E8] border-2 border-[#15110F] font-mono text-xs font-bold uppercase tracking-widest text-[#15110F]">
-                  <ShieldCheck size={16} className="text-[#2E6F40]" />
-                  <span>04 / Hygiene &amp; Studio Protocol</span>
-                </div>
-                <DieCutSticker variant="flower" rotate={-4} />
-                <DieCutSticker variant="sparkle-badge" rotate={5} />
+                <StickerDrop rotate={-2} delay={0.02}>
+                  <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#F5F0E8] border-2 border-[#15110F] shadow-[2px_2px_0px_#15110F] font-mono text-xs font-bold uppercase tracking-widest text-[#15110F]">
+                    <ShieldCheck size={16} className="text-[#2E6F40]" />
+                    <span>04 / Hygiene &amp; Studio Protocol</span>
+                  </div>
+                </StickerDrop>
+                <DieCutSticker variant="flower" rotate={-4} delay={0.12} />
+                <DieCutSticker variant="sparkle-badge" rotate={5} delay={0.22} />
               </div>
               <h2 className="font-display text-3xl sm:text-5xl font-extrabold text-[#15110F]">
                 Uncompromising Hygiene &amp; Product Integrity
@@ -690,9 +705,9 @@ export const AboutPage: React.FC = () => {
       <section className="py-16 lg:py-24 bg-[#C4262E] text-[#F5F0E8] border-b-[2.5px] border-[#15110F]">
         <div className="max-w-[1440px] mx-auto px-4 sm:px-8 text-center space-y-6">
           <div className="flex flex-wrap items-center justify-center gap-3">
-            <DieCutSticker variant="scissors" rotate={-5} />
-            <DieCutSticker variant="stamp" rotate={6} />
-            <DieCutSticker variant="lipstick" rotate={-3} />
+            <DieCutSticker variant="scissors" rotate={-5} delay={0.02} />
+            <DieCutSticker variant="stamp" rotate={6} delay={0.14} />
+            <DieCutSticker variant="lipstick" rotate={-3} delay={0.24} />
           </div>
           <h2 className="font-display font-black text-3xl sm:text-5xl text-[#F5F0E8] text-stroke-shadow-md max-w-3xl mx-auto">
             Experience the Bbold difference in person.
@@ -761,12 +776,14 @@ export const ContactPage: React.FC = () => {
       <section className="space-y-3 pb-10 border-b-[2.5px] border-[#15110F] flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div className="space-y-3">
           <div className="flex flex-wrap items-center gap-3">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#E8A317] border-2 border-[#15110F] font-mono text-xs font-bold uppercase tracking-widest text-[#15110F]">
-              <MapPin size={12} />
-              <span>Visit or Call Us in Mumbai</span>
-            </div>
-            <DieCutSticker variant="blowdryer" rotate={-4} />
-            <DieCutSticker variant="scissors" rotate={5} />
+            <StickerDrop rotate={-2} delay={0}>
+              <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#E8A317] border-2 border-[#15110F] shadow-[2px_2px_0px_#15110F] font-mono text-xs font-bold uppercase tracking-widest text-[#15110F]">
+                <MapPin size={12} />
+                <span>Visit or Call Us in Mumbai</span>
+              </div>
+            </StickerDrop>
+            <DieCutSticker variant="blowdryer" rotate={-4} delay={0.1} />
+            <DieCutSticker variant="scissors" rotate={5} delay={0.2} />
           </div>
           <h1 className="font-display font-extrabold text-h1 text-[#15110F]">
             Contact &amp; Studio Hours

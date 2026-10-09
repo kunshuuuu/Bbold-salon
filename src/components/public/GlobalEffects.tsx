@@ -37,6 +37,31 @@ export function usePrefersReducedMotion(): boolean {
 // =============================================================================
 
 const PRELOADER_SESSION_KEY = 'bbold_preloader_seen_v1';
+let preloaderCurrentlyActive = false;
+const preloaderListeners = new Set<() => void>();
+
+function notifyPreloaderComplete() {
+  preloaderCurrentlyActive = false;
+  preloaderListeners.forEach((cb) => cb());
+}
+
+export function usePreloaderReady(): boolean {
+  const [ready, setReady] = useState(() => !preloaderCurrentlyActive);
+
+  useEffect(() => {
+    if (!preloaderCurrentlyActive) {
+      setReady(true);
+      return;
+    }
+    const handleDone = () => setReady(true);
+    preloaderListeners.add(handleDone);
+    return () => {
+      preloaderListeners.delete(handleDone);
+    };
+  }, []);
+
+  return ready;
+}
 
 export const Preloader: React.FC = () => {
   const location = useLocation();
@@ -47,32 +72,45 @@ export const Preloader: React.FC = () => {
       window.location.pathname.startsWith('/book') ||
       window.location.pathname.startsWith('/admin')
     ) {
+      preloaderCurrentlyActive = false;
       return false;
     }
-    return !window.sessionStorage.getItem(PRELOADER_SESSION_KEY);
+    const shouldShow = !window.sessionStorage.getItem(PRELOADER_SESSION_KEY);
+    preloaderCurrentlyActive = shouldShow;
+    return shouldShow;
   });
   const [phase, setPhase] = useState<'draw' | 'crimson-swipe' | 'paper-wipe'>('draw');
 
   useEffect(() => {
-    if (!visible) return;
+    if (!visible) {
+      notifyPreloaderComplete();
+      return;
+    }
     if (
       location.pathname.startsWith('/book') ||
       location.pathname.startsWith('/admin')
     ) {
       setVisible(false);
+      notifyPreloaderComplete();
       return;
     }
 
     window.sessionStorage.setItem(PRELOADER_SESSION_KEY, '1');
 
     if (reducedMotion) {
-      const t = window.setTimeout(() => setVisible(false), 300);
+      const t = window.setTimeout(() => {
+        setVisible(false);
+        notifyPreloaderComplete();
+      }, 300);
       return () => window.clearTimeout(t);
     }
 
     const t1 = window.setTimeout(() => setPhase('crimson-swipe'), 1200);
     const t2 = window.setTimeout(() => setPhase('paper-wipe'), 1900);
-    const t3 = window.setTimeout(() => setVisible(false), 2600);
+    const t3 = window.setTimeout(() => {
+      setVisible(false);
+      notifyPreloaderComplete();
+    }, 2600);
 
     return () => {
       window.clearTimeout(t1);
@@ -391,7 +429,7 @@ export const CutLine: React.FC<{ className?: string }> = ({ className = '' }) =>
 };
 
 // =============================================================================
-// 5. DIE-CUT STICKERS (Continuously in motion + circular text loop on stamp)
+// 5. DIE-CUT STICKERS & STICKER DROP (Smooth Fall from Above + Bouncy Landing)
 // =============================================================================
 
 export type StickerVariant =
@@ -407,63 +445,239 @@ export type StickerVariant =
   | 'crown'
   | 'academy-star';
 
+const VARIANT_STAGGER_MAP: Record<StickerVariant, number> = {
+  scissors: 0.06,
+  blowdryer: 0.16,
+  'nail-polish': 0.12,
+  stamp: 0.22,
+  comb: 0.1,
+  'sparkle-badge': 0.14,
+  crown: 0.08,
+  lipstick: 0.12,
+  mirror: 0.18,
+  'academy-star': 0.1,
+  flower: 0.14,
+};
+
+export const StickerDrop: React.FC<{
+  children: React.ReactNode;
+  className?: string;
+  rotate?: number;
+  delay?: number;
+  dropDistance?: number;
+  idleFloat?: boolean;
+}> = ({
+  children,
+  className = '',
+  rotate = -3,
+  delay = 0,
+  dropDistance = 135,
+  idleFloat = true,
+}) => {
+  const preloaderReady = usePreloaderReady();
+  const anchorRef = useRef<HTMLDivElement | null>(null);
+  const [inView, setInView] = useState(false);
+
+  useEffect(() => {
+    const node = anchorRef.current;
+    if (!node || typeof IntersectionObserver === 'undefined') {
+      setInView(true);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        if (!entry) return;
+
+        if (entry.isIntersecting && entry.intersectionRatio >= 0.08) {
+          setInView(true);
+        } else if (!entry.isIntersecting) {
+          const rect = entry.boundingClientRect;
+          const vh = window.innerHeight || 800;
+          const vw = window.innerWidth || 1200;
+          if (
+            rect.bottom < -36 ||
+            rect.top > vh + 36 ||
+            rect.right < -36 ||
+            rect.left > vw + 36
+          ) {
+            setInView(false);
+          }
+        }
+      },
+      {
+        threshold: [0, 0.08, 0.2],
+        rootMargin: '24px 0px 24px 0px',
+      }
+    );
+
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
+
+  const shouldAnimate = inView && preloaderReady;
+  const tiltDirection = rotate >= 0 ? 1 : -1;
+  const initialTilt = -14 * tiltDirection;
+  const overshootTilt = 7 * tiltDirection;
+  const reboundTilt = -4.5 * tiltDirection;
+
+  return (
+    <div
+      ref={anchorRef}
+      className={`relative inline-flex items-center justify-center align-middle ${className}`}
+    >
+      <motion.div
+        initial={{
+          y: -dropDistance,
+          opacity: 0,
+          scaleX: 0.88,
+          scaleY: 1.08,
+          rotate: initialTilt,
+        }}
+        animate={
+          shouldAnimate
+            ? {
+                y: [-dropDistance, -Math.round(dropDistance * 0.78), 18, -24, 8, -5, 0],
+                opacity: [0, 1, 1, 1, 1, 1, 1],
+                scaleX: [0.88, 0.92, 1.08, 0.95, 1.03, 0.99, 1],
+                scaleY: [1.08, 1.05, 0.9, 1.04, 0.97, 1.01, 1],
+                rotate: [
+                  initialTilt,
+                  initialTilt * 0.7,
+                  overshootTilt,
+                  reboundTilt,
+                  overshootTilt * 0.35,
+                  reboundTilt * 0.25,
+                  0,
+                ],
+              }
+            : {
+                y: -dropDistance,
+                opacity: 0,
+                scaleX: 0.88,
+                scaleY: 1.08,
+                rotate: initialTilt,
+              }
+        }
+        transition={
+          shouldAnimate
+            ? {
+                duration: 1.12,
+                delay,
+                times: [0, 0.1, 0.36, 0.56, 0.74, 0.88, 1],
+                ease: [
+                  'easeOut',
+                  [0.42, 0, 0.72, 0.08],
+                  [0.22, 1, 0.36, 1],
+                  [0.42, 0, 0.72, 0.08],
+                  [0.22, 1, 0.36, 1],
+                  [0.25, 1, 0.5, 1],
+                ],
+              }
+            : { duration: 0 }
+        }
+        className="inline-flex items-center justify-center will-change-transform [backface-visibility:hidden]"
+      >
+        {idleFloat ? (
+          <motion.div
+            animate={{
+              y: [0, -4, 0, 2, 0],
+              rotate: [rotate * 0.35 - 1.5, rotate * 0.35 + 1.5, rotate * 0.35 - 1.5],
+            }}
+            transition={{
+              duration: 3.8,
+              repeat: Infinity,
+              ease: 'easeInOut',
+            }}
+            whileHover={{ scale: 1.06, rotate: rotate + 4 }}
+            className="inline-flex items-center justify-center will-change-transform"
+          >
+            {children}
+          </motion.div>
+        ) : (
+          children
+        )}
+      </motion.div>
+    </div>
+  );
+};
+
 export const DieCutSticker: React.FC<{
   variant: StickerVariant;
   className?: string;
   rotate?: number;
   label?: string;
-}> = ({ variant, className = '', rotate = -5, label }) => {
-  const reducedMotion = usePrefersReducedMotion();
+  delay?: number;
+}> = ({ variant, className = '', rotate = -5, label, delay }) => {
   const uid = React.useId().replace(/:/g, '');
   const circlePathId = `bbold-stamp-circle-${uid}`;
+  const resolvedDelay =
+    typeof delay === 'number'
+      ? delay
+      : (VARIANT_STAGGER_MAP[variant] ?? 0.08) + (Math.abs(rotate) % 4) * 0.025;
 
   if (variant === 'stamp') {
     return (
-      <motion.div
-        data-cursor="drag"
-        drag
-        dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
-        animate={{
-          y: [0, -6, 0],
-        }}
-        transition={{
-          y: {
-            duration: 3.2,
-            repeat: Infinity,
-            ease: 'easeInOut',
-          },
-        }}
-        whileHover={{ scale: 1.08 }}
-        className={`relative inline-flex items-center justify-center w-32 h-32 rounded-full bg-[#C4262E] text-[#F5F0E8] border-[3px] border-[#15110F] ring-4 ring-[#FFFFFF] shadow-[4px_4px_0px_#15110F] cursor-grab active:cursor-grabbing select-none ${className}`}
+      <StickerDrop
+        rotate={rotate}
+        delay={resolvedDelay}
+        dropDistance={145}
+        idleFloat={false}
+        className={className}
       >
-        {/* Rotating Circular Text Ring in Perpetual Loop */}
-        <svg
-          viewBox="0 0 120 120"
-          className="w-full h-full p-1.5 animate-bbold-spin"
+        <motion.div
+          data-cursor="drag"
+          drag
+          dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
+          animate={{
+            y: [0, -6, 0],
+            rotate: [rotate - 2, rotate + 2, rotate - 2],
+          }}
+          transition={{
+            y: {
+              duration: 3.2,
+              repeat: Infinity,
+              ease: 'easeInOut',
+            },
+            rotate: {
+              duration: 4.0,
+              repeat: Infinity,
+              ease: 'easeInOut',
+            },
+          }}
+          whileHover={{ scale: 1.08 }}
+          className="relative inline-flex items-center justify-center w-32 h-32 rounded-full bg-[#C4262E] text-[#F5F0E8] border-[3px] border-[#15110F] ring-4 ring-[#FFFFFF] shadow-[4px_4px_0px_#15110F] cursor-grab active:cursor-grabbing select-none will-change-transform"
         >
-          <defs>
-            <path
-              id={circlePathId}
-              d="M 60, 60 m -42, 0 a 42,42 0 1,1 84,0 a 42,42 0 1,1 -84,0"
-            />
-          </defs>
-          <text className="font-mono text-[9.5px] font-bold uppercase tracking-[0.13em] fill-[#F5F0E8]">
-            <textPath href={`#${circlePathId}`}>
-              BBOLD · SALON &amp; ACADEMY · MUMBAI ·
-            </textPath>
-          </text>
-        </svg>
+          {/* Rotating Circular Text Ring in Perpetual Loop */}
+          <svg
+            viewBox="0 0 120 120"
+            className="w-full h-full p-1.5 animate-bbold-spin"
+          >
+            <defs>
+              <path
+                id={circlePathId}
+                d="M 60, 60 m -42, 0 a 42,42 0 1,1 84,0 a 42,42 0 1,1 -84,0"
+              />
+            </defs>
+            <text className="font-mono text-[9.5px] font-bold uppercase tracking-[0.13em] fill-[#F5F0E8]">
+              <textPath href={`#${circlePathId}`}>
+                BBOLD · SALON &amp; ACADEMY · MUMBAI ·
+              </textPath>
+            </text>
+          </svg>
 
-        {/* Stationary Center Monogram */}
-        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-          <span className="font-display font-black text-2xl leading-none text-[#F5F0E8] drop-shadow-[1px_1px_0px_#15110F]">
-            Bb
-          </span>
-          <span className="font-mono text-[8px] uppercase tracking-widest text-[#E8A317] font-bold mt-0.5">
-            EST · MUMBAI
-          </span>
-        </div>
-      </motion.div>
+          {/* Stationary Center Monogram */}
+          <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+            <span className="font-display font-black text-2xl leading-none text-[#F5F0E8] drop-shadow-[1px_1px_0px_#15110F]">
+              Bb
+            </span>
+            <span className="font-mono text-[8px] uppercase tracking-widest text-[#E8A317] font-bold mt-0.5">
+              EST · MUMBAI
+            </span>
+          </div>
+        </motion.div>
+      </StickerDrop>
     );
   }
 
@@ -542,32 +756,40 @@ export const DieCutSticker: React.FC<{
   const cfg = labelMap[variant] || labelMap.scissors;
 
   return (
-    <motion.div
-      data-cursor="drag"
-      drag
-      dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
-      animate={{
-        y: [0, -7, 0, 4, 0],
-        rotate: [rotate - 3, rotate + 4, rotate - 3],
-        scale: [1, 1.03, 1],
-      }}
-      transition={{
-        duration: 3.6,
-        repeat: Infinity,
-        ease: 'easeInOut',
-      }}
-      whileHover={{ rotate: rotate + 10, scale: 1.1 }}
-      style={{
-        backgroundColor: cfg.bg,
-        color: cfg.ink,
-      }}
-      className={`inline-flex items-center gap-2 px-4 py-2 rounded-full border-[2.5px] border-[#15110F] ring-2 ring-[#FFFFFF] shadow-[3px_3px_0px_#15110F] font-display font-extrabold text-xs uppercase tracking-wider cursor-grab active:cursor-grabbing select-none ${className}`}
+    <StickerDrop
+      rotate={rotate}
+      delay={resolvedDelay}
+      dropDistance={135}
+      idleFloat={false}
+      className={className}
     >
-      <span aria-hidden="true" className="shrink-0">
-        {cfg.icon}
-      </span>
-      <span>{label || cfg.title}</span>
-    </motion.div>
+      <motion.div
+        data-cursor="drag"
+        drag
+        dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
+        animate={{
+          y: [0, -6, 0, 3, 0],
+          rotate: [rotate - 2.5, rotate + 3, rotate - 2.5],
+          scale: [1, 1.025, 1],
+        }}
+        transition={{
+          duration: 3.6,
+          repeat: Infinity,
+          ease: 'easeInOut',
+        }}
+        whileHover={{ rotate: rotate + 8, scale: 1.09 }}
+        style={{
+          backgroundColor: cfg.bg,
+          color: cfg.ink,
+        }}
+        className="inline-flex items-center gap-2 px-4 py-2 rounded-full border-[2.5px] border-[#15110F] ring-2 ring-[#FFFFFF] shadow-[3px_3px_0px_#15110F] font-display font-extrabold text-xs uppercase tracking-wider cursor-grab active:cursor-grabbing select-none will-change-transform"
+      >
+        <span aria-hidden="true" className="shrink-0">
+          {cfg.icon}
+        </span>
+        <span>{label || cfg.title}</span>
+      </motion.div>
+    </StickerDrop>
   );
 };
 

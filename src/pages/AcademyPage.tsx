@@ -6,7 +6,7 @@ import { formatINR } from '../config/site';
 import { Img } from '../components/visual/Img';
 import { SampleTag } from '../components/common/SampleTag';
 import { EnquiryFormCard } from '../components/public/EnquiryFormCard';
-import { CutLine, DieCutSticker } from '../components/public/GlobalEffects';
+import { CutLine, DieCutSticker, StickerDrop } from '../components/public/GlobalEffects';
 import type { Course } from '../types/database';
 
 export const AcademyPage: React.FC = () => {
@@ -69,12 +69,14 @@ export const AcademyPage: React.FC = () => {
       <section className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center pb-16 border-b-[2.5px] border-[#15110F]">
         <div className="lg:col-span-7 space-y-6">
           <div className="flex flex-wrap items-center gap-3">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#E8A317] border-2 border-[#15110F] font-mono text-xs font-bold uppercase tracking-widest text-[#15110F]">
-              <GraduationCap size={14} className="text-[#C4262E]" />
-              <span>Bbold Training Academy · Mumbai</span>
-            </div>
-            <DieCutSticker variant="academy-star" rotate={-4} />
-            <DieCutSticker variant="scissors" rotate={5} />
+            <StickerDrop rotate={-2} delay={0}>
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#E8A317] border-2 border-[#15110F] shadow-[2px_2px_0px_#15110F] font-mono text-xs font-bold uppercase tracking-widest text-[#15110F]">
+                <GraduationCap size={14} className="text-[#C4262E]" />
+                <span>Bbold Training Academy · Mumbai</span>
+              </div>
+            </StickerDrop>
+            <DieCutSticker variant="academy-star" rotate={-4} delay={0.1} />
+            <DieCutSticker variant="scissors" rotate={5} delay={0.2} />
           </div>
 
           <h1 className="font-display font-extrabold text-hero text-[#15110F]">
@@ -109,14 +111,16 @@ export const AcademyPage: React.FC = () => {
 
       {/* Why Train at Bbold (3 Editorial Pillars) */}
       <section className="grid grid-cols-1 md:grid-cols-3 gap-6 pb-16 border-b-[2.5px] border-[#15110F]">
-        {pillars.map((p) => (
+        {pillars.map((p, idx) => (
           <div
             key={p.num}
             className="p-7 rounded-3xl bg-[#E9DDD0] border-2 border-[#15110F] shadow-[4px_4px_0px_#15110F] space-y-3"
           >
-            <span className="font-mono text-xs font-bold px-2.5 py-1 rounded-full bg-[#E8A317] border border-[#15110F] text-[#15110F]">
-              Pillar {p.num}
-            </span>
+            <StickerDrop rotate={idx % 2 === 0 ? -3 : 3} delay={idx * 0.08} dropDistance={110}>
+              <span className="inline-block font-mono text-xs font-bold px-2.5 py-1 rounded-full bg-[#E8A317] border border-[#15110F] shadow-[2px_2px_0px_#15110F] text-[#15110F]">
+                Pillar {p.num}
+              </span>
+            </StickerDrop>
             <h2 className="font-display text-2xl font-bold text-[#15110F]">{p.title}</h2>
             <p className="text-sm text-[#15110F]/80 leading-relaxed">{p.body}</p>
           </div>
@@ -127,8 +131,11 @@ export const AcademyPage: React.FC = () => {
       <section className="space-y-8 pb-16 border-b-[2.5px] border-[#15110F]">
         <div className="border-b-[2.5px] border-[#15110F] pb-4 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
           <div>
-            <div className="font-mono text-xs uppercase tracking-widest text-[#C4262E]">
-              Curriculum &amp; Certification
+            <div className="flex items-center gap-3">
+              <div className="font-mono text-xs uppercase tracking-widest text-[#C4262E]">
+                Curriculum &amp; Certification
+              </div>
+              <DieCutSticker variant="stamp" rotate={-5} delay={0.1} />
             </div>
             <h2 className="font-display text-3xl sm:text-4xl font-bold text-[#15110F] mt-1">
               Professional Courses

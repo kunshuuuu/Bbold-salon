@@ -93,6 +93,16 @@ const AdminPhotosGalleryPage = lazy(() =>
     default: m.AdminPhotosGalleryPage,
   }))
 );
+const AdminHomepageStationsPage = lazy(() =>
+  import('./pages/admin/AdminMediaAndToolsPages').then((m) => ({
+    default: m.AdminHomepageStationsPage,
+  }))
+);
+const AdminRealTransformationsPage = lazy(() =>
+  import('./pages/admin/AdminMediaAndToolsPages').then((m) => ({
+    default: m.AdminRealTransformationsPage,
+  }))
+);
 const AdminHomepageTextPage = lazy(() =>
   import('./pages/admin/AdminMediaAndToolsPages').then((m) => ({
     default: m.AdminHomepageTextPage,
@@ -142,6 +152,8 @@ export default function App() {
             <Route path="stylists" element={<AdminStylistsPage />} />
             <Route path="courses" element={<AdminCoursesPage />} />
             <Route path="enquiries" element={<AdminEnquiriesPage />} />
+            <Route path="stations" element={<AdminHomepageStationsPage />} />
+            <Route path="transformations" element={<AdminRealTransformationsPage />} />
             <Route path="photos" element={<AdminPhotosGalleryPage />} />
             <Route path="testimonials" element={<AdminTestimonialsPage />} />
             <Route path="faq" element={<AdminFaqPage />} />

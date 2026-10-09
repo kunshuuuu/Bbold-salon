@@ -13,6 +13,10 @@ import {
   getPublicSiteTexts,
   getPublicSiteImages,
 } from './content';
+import {
+  DEFAULT_HOMEPAGE_STATIONS_SECTION,
+  DEFAULT_HOMEPAGE_TRANSFORMATIONS_SECTION,
+} from '../config/site';
 
 export const ADMIN_ALLOWED_UID = '94ea72fb-56f0-4b7c-9d5f-9a944ce358b0';
 export const ADMIN_ALLOWED_EMAIL = 'bboldmumbaisalon@gmail.com';
@@ -1196,7 +1200,9 @@ insert into public.site_texts (key, value) values
   ('hero', ${sqlString(JSON.stringify(siteTexts.hero))}::jsonb),
   ('announcement', ${sqlString(JSON.stringify(siteTexts.announcement))}::jsonb),
   ('marquee', ${sqlString(JSON.stringify(siteTexts.marquee))}::jsonb),
-  ('footer', ${sqlString(JSON.stringify(siteTexts.footer))}::jsonb)
+  ('footer', ${sqlString(JSON.stringify(siteTexts.footer))}::jsonb),
+  ('stations', ${sqlString(JSON.stringify(siteTexts.stations || DEFAULT_HOMEPAGE_STATIONS_SECTION))}::jsonb),
+  ('transformations', ${sqlString(JSON.stringify(siteTexts.transformations || DEFAULT_HOMEPAGE_TRANSFORMATIONS_SECTION))}::jsonb)
 on conflict (key) do update set
   value = excluded.value,
   updated_at = now();

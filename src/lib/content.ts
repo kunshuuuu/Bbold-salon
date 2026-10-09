@@ -11,6 +11,8 @@ import {
   DEFAULT_SALON_SETTINGS,
   DEFAULT_BUSINESS_HOURS,
   DEFAULT_SITE_TEXTS,
+  DEFAULT_HOMEPAGE_STATIONS_SECTION,
+  DEFAULT_HOMEPAGE_TRANSFORMATIONS_SECTION,
 } from '../config/site';
 import {
   getLocalBlockedDates,
@@ -281,10 +283,30 @@ export async function getPublicGalleryItems(): Promise<GalleryItem[]> {
 
   // Merge any custom items uploaded via universal store with Supabase rows
   const supaRows = data as GalleryItem[];
-  const merged = [...supaRows];
+  const localById = new Map(localRows.map((l) => [l.id, l]));
+  const merged = supaRows.map((s) => {
+    const loc = localById.get(s.id);
+    if (!loc) return s;
+    const locHasAfter = Boolean(loc.image_url) && loc.image_url !== 'ILLUSTRATION_AFTER';
+    const supaHasAfter = Boolean(s.image_url) && s.image_url !== 'ILLUSTRATION_AFTER';
+    const locHasBefore = Boolean(loc.before_image_url) && loc.before_image_url !== 'ILLUSTRATION_BEFORE';
+    const supaHasBefore = Boolean(s.before_image_url) && s.before_image_url !== 'ILLUSTRATION_BEFORE';
+    return {
+      ...s,
+      ...loc,
+      image_url: supaHasAfter ? s.image_url : locHasAfter ? loc.image_url : s.image_url,
+      before_image_url: supaHasBefore
+        ? s.before_image_url
+        : locHasBefore
+        ? loc.before_image_url
+        : s.before_image_url,
+    };
+  });
   for (const loc of localRows) {
-    const hasPhoto = Boolean(loc.image_url) && loc.image_url !== 'ILLUSTRATION_AFTER';
-    if (hasPhoto && !merged.some((m) => m.id === loc.id)) {
+    const hasPhoto =
+      (Boolean(loc.image_url) && loc.image_url !== 'ILLUSTRATION_AFTER') ||
+      (Boolean(loc.before_image_url) && loc.before_image_url !== 'ILLUSTRATION_BEFORE');
+    if ((hasPhoto || !loc.is_sample) && !merged.some((m) => m.id === loc.id)) {
       merged.unshift(loc);
     }
   }
@@ -356,31 +378,117 @@ export async function getPublicSiteTexts(): Promise<SiteTextsMap> {
     {}
   );
 
+  const baseResult: SiteTextsMap = {
+    hero: { ...DEFAULT_SITE_TEXTS.hero, ...(storedTexts.hero || {}) },
+    announcement: { ...DEFAULT_SITE_TEXTS.announcement, ...(storedTexts.announcement || {}) },
+    marquee: { ...DEFAULT_SITE_TEXTS.marquee, ...(storedTexts.marquee || {}) },
+    footer: { ...DEFAULT_SITE_TEXTS.footer, ...(storedTexts.footer || {}) },
+    stations: storedTexts.stations
+      ? {
+          ...DEFAULT_HOMEPAGE_STATIONS_SECTION,
+          ...storedTexts.stations,
+          cards: Array.isArray(storedTexts.stations.cards)
+            ? storedTexts.stations.cards
+            : DEFAULT_HOMEPAGE_STATIONS_SECTION.cards,
+        }
+      : {
+          ...DEFAULT_HOMEPAGE_STATIONS_SECTION,
+          cards: DEFAULT_HOMEPAGE_STATIONS_SECTION.cards.map((c) => ({ ...c })),
+        },
+    transformations: storedTexts.transformations
+      ? {
+          ...DEFAULT_HOMEPAGE_TRANSFORMATIONS_SECTION,
+          ...storedTexts.transformations,
+          beforeAfter: {
+            ...DEFAULT_HOMEPAGE_TRANSFORMATIONS_SECTION.beforeAfter,
+            ...(storedTexts.transformations.beforeAfter || {}),
+          },
+          cards: Array.isArray(storedTexts.transformations.cards)
+            ? storedTexts.transformations.cards
+            : DEFAULT_HOMEPAGE_TRANSFORMATIONS_SECTION.cards,
+        }
+      : {
+          ...DEFAULT_HOMEPAGE_TRANSFORMATIONS_SECTION,
+          beforeAfter: { ...DEFAULT_HOMEPAGE_TRANSFORMATIONS_SECTION.beforeAfter },
+          cards: DEFAULT_HOMEPAGE_TRANSFORMATIONS_SECTION.cards.map((c) => ({ ...c })),
+        },
+  };
+
   if (!isSupabaseConfigured()) {
-    return { ...DEFAULT_SITE_TEXTS, ...storedTexts };
+    return baseResult;
   }
 
   const { data, error } = await supabase.from('site_texts').select('*');
   if (error || !data || data.length === 0) {
-    return DEFAULT_SITE_TEXTS;
+    return baseResult;
   }
 
-  const result: SiteTextsMap = {
-    hero: { ...DEFAULT_SITE_TEXTS.hero },
-    announcement: { ...DEFAULT_SITE_TEXTS.announcement },
-    marquee: { ...DEFAULT_SITE_TEXTS.marquee },
-    footer: { ...DEFAULT_SITE_TEXTS.footer },
-  };
+  const result: SiteTextsMap = { ...baseResult };
 
   for (const row of data as Array<{ key: string; value: unknown }>) {
     if (row.key === 'hero' && row.value && typeof row.value === 'object') {
       result.hero = { ...result.hero, ...(row.value as SiteTextsMap['hero']) };
     } else if (row.key === 'announcement' && row.value && typeof row.value === 'object') {
-      result.announcement = { ...result.announcement, ...(row.value as SiteTextsMap['announcement']) };
+      result.announcement = {
+        ...result.announcement,
+        ...(row.value as SiteTextsMap['announcement']),
+      };
     } else if (row.key === 'marquee' && row.value && typeof row.value === 'object') {
       result.marquee = { ...result.marquee, ...(row.value as SiteTextsMap['marquee']) };
     } else if (row.key === 'footer' && row.value && typeof row.value === 'object') {
       result.footer = { ...result.footer, ...(row.value as SiteTextsMap['footer']) };
+    } else if (row.key === 'stations' && row.value && typeof row.value === 'object') {
+      const supaStations = row.value as NonNullable<SiteTextsMap['stations']>;
+      const localCards = storedTexts.stations?.cards || [];
+      const supaCards = Array.isArray(supaStations.cards)
+        ? supaStations.cards
+        : DEFAULT_HOMEPAGE_STATIONS_SECTION.cards;
+      // Merge any locally uploaded image_url if Supabase row doesn't have it yet
+      const mergedCards = supaCards.map((sc) => {
+        const lc = localCards.find((x) => x.id === sc.id);
+        return {
+          ...sc,
+          image_url: sc.image_url || lc?.image_url || null,
+        };
+      });
+      result.stations = {
+        ...DEFAULT_HOMEPAGE_STATIONS_SECTION,
+        ...supaStations,
+        cards: mergedCards,
+      };
+    } else if (row.key === 'transformations' && row.value && typeof row.value === 'object') {
+      const supaTrans = row.value as NonNullable<SiteTextsMap['transformations']>;
+      const localTrans = storedTexts.transformations;
+      const supaCards = Array.isArray(supaTrans.cards)
+        ? supaTrans.cards
+        : DEFAULT_HOMEPAGE_TRANSFORMATIONS_SECTION.cards;
+      const localCards = localTrans?.cards || [];
+      const mergedCards = supaCards.map((tc) => {
+        const lc = localCards.find((x) => x.id === tc.id);
+        return {
+          ...tc,
+          image_url: tc.image_url || lc?.image_url || null,
+          before_image_url: tc.before_image_url || lc?.before_image_url || null,
+        };
+      });
+      result.transformations = {
+        ...DEFAULT_HOMEPAGE_TRANSFORMATIONS_SECTION,
+        ...supaTrans,
+        beforeAfter: {
+          ...DEFAULT_HOMEPAGE_TRANSFORMATIONS_SECTION.beforeAfter,
+          ...(localTrans?.beforeAfter || {}),
+          ...(supaTrans.beforeAfter || {}),
+          before_image_url:
+            supaTrans.beforeAfter?.before_image_url ||
+            localTrans?.beforeAfter?.before_image_url ||
+            null,
+          after_image_url:
+            supaTrans.beforeAfter?.after_image_url ||
+            localTrans?.beforeAfter?.after_image_url ||
+            null,
+        },
+        cards: mergedCards,
+      };
     }
   }
 
