@@ -2,6 +2,7 @@ import type { IllustrationKey, ImageMask, RoomId } from '../types/database';
 
 export type ImageSlotId =
   | 'hero_hair'
+  | 'brand_logo'
   | 'hero_makeup'
   | 'hero_nails'
   | 'hero_skin'
@@ -56,6 +57,19 @@ export interface ImageSlotConfig {
 }
 
 export const IMAGE_SLOTS: Record<ImageSlotId, ImageSlotConfig> = {
+  brand_logo: {
+    id: 'brand_logo',
+    label: 'Official Brand Logo (Header & Site-Wide)',
+    section: 'Brand Identity',
+    aspect: '16/9',
+    width: 906,
+    height: 564,
+    mask: 'none',
+    illustration: 'comb-and-scissors',
+    room: 'hair',
+    defaultAlt: 'BBOLD Salon & Academy Official Logo',
+    staticUrl: '/bbold-logo.png',
+  },
   hero_hair: {
     id: 'hero_hair',
     label: 'Home Hero — Hair Capsule',

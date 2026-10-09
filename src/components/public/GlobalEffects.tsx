@@ -124,10 +124,14 @@ export const Preloader: React.FC = () => {
   if (reducedMotion) {
     return (
       <div className="fixed inset-0 z-[500] bg-[#15110F] text-[#F5F0E8] flex items-center justify-center transition-opacity duration-300">
-        <div className="text-center">
-          <div className="font-display text-5xl font-extrabold">Bbold</div>
-          <div className="font-mono text-xs uppercase tracking-widest mt-2 text-[#F2C9C0]">
-            Salon &amp; Academy · Mumbai
+        <div className="text-center flex flex-col items-center">
+          <img
+            src="/bbold-logo-light.png"
+            alt="BBOLD Salon & Academy"
+            className="h-20 sm:h-24 w-auto object-contain"
+          />
+          <div className="font-mono text-xs uppercase tracking-widest mt-3 text-[#F2C9C0]">
+            Mumbai
           </div>
         </div>
       </div>
@@ -139,31 +143,16 @@ export const Preloader: React.FC = () => {
       aria-hidden="true"
       className="fixed inset-0 z-[500] bg-[#15110F] text-[#F5F0E8] flex items-center justify-center overflow-hidden select-none"
     >
-      {/* Outlined dual "B" letterforms drawing in */}
-      <svg
-        viewBox="0 0 360 180"
-        className="w-72 sm:w-96 h-auto"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <text
-          x="65"
-          y="142"
-          className="font-display font-extrabold text-[140px]"
-          stroke="#F5F0E8"
-          strokeWidth="2"
-          fill="transparent"
-          style={{
-            strokeDasharray: 600,
-            strokeDashoffset: phase === 'draw' ? 120 : 0,
-            transition: 'stroke-dashoffset 700ms cubic-bezier(0.65, 0, 0.35, 1)',
-          }}
-        >
-          Bb
-        </text>
-      </svg>
+      {/* Official BBOLD Salon & Academy Brand Mark Reveal */}
+      <div className="flex flex-col items-center justify-center transition-all duration-700">
+        <img
+          src="/bbold-logo-light.png"
+          alt="BBOLD Salon & Academy"
+          className="h-24 sm:h-32 w-auto object-contain drop-shadow-[0_12px_32px_rgba(0,0,0,0.4)]"
+        />
+      </div>
 
-      {/* Thick Crimson Brush Stroke + Wordmark Reveal */}
+      {/* Thick Crimson Brush Stroke + Official Logo Reveal */}
       <div
         className="absolute inset-0 flex items-center justify-center transition-transform duration-600 ease-[cubic-bezier(0.76,0,0.24,1)]"
         style={{
@@ -176,11 +165,13 @@ export const Preloader: React.FC = () => {
               : 'translateX(0%)',
         }}
       >
-        <div className="text-center">
-          <div className="font-display text-6xl sm:text-8xl font-extrabold tracking-tight text-[#F5F0E8]">
-            Bbold
-          </div>
-          <div className="font-mono text-xs uppercase tracking-[0.2em] text-[#F5F0E8]/90 mt-2">
+        <div className="text-center flex flex-col items-center">
+          <img
+            src="/bbold-logo-light.png"
+            alt="BBOLD Salon & Academy"
+            className="h-24 sm:h-32 w-auto object-contain"
+          />
+          <div className="font-mono text-xs uppercase tracking-[0.2em] text-[#F5F0E8]/90 mt-3">
             Salon &amp; Academy · Mumbai
           </div>
         </div>

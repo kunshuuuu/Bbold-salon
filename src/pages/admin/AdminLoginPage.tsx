@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { Lock, ArrowLeft } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { BrandLogo } from '../../components/common/BrandLogo';
 import { isSupabaseConfigured } from '../../lib/supabase';
 import { SITE_CONFIG } from '../../config/site';
 
@@ -103,14 +104,12 @@ export const AdminLoginPage: React.FC = () => {
       <div className="w-full max-w-[420px] rounded-[12px] bg-[#FFFFFF] border border-[#E6E2DB] p-6 sm:p-8 shadow-lg">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-[24px] leading-[32px] font-semibold text-[#15110F]">
-              Bbold Admin
-            </h1>
-            <p className="text-[14px] leading-[20px] text-[#6B6560] mt-0.5">
+            <BrandLogo variant="dark" sizeClass="h-11" badge="Admin Portal" />
+            <p className="text-[14px] leading-[20px] text-[#6B6560] mt-2">
               Sign in to manage appointments and website content
             </p>
           </div>
-          <div className="w-10 h-10 rounded-[8px] bg-[#F6F4F0] border border-[#E6E2DB] flex items-center justify-center text-[#C4262E]">
+          <div className="w-10 h-10 rounded-[8px] bg-[#F6F4F0] border border-[#E6E2DB] flex items-center justify-center text-[#C4262E] shrink-0">
             <Lock size={18} />
           </div>
         </div>

@@ -13,6 +13,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { useSiteData } from '../../context/SiteDataContext';
+import { BrandLogo } from '../common/BrandLogo';
 import { ROOM_SWATCHES, SITE_CONFIG, WEEKDAY_NAMES } from '../../config/site';
 import type { RoomId } from '../../types/database';
 import {
@@ -171,22 +172,16 @@ export const PublicShell: React.FC = () => {
         }`}
       >
         <div className="max-w-[1440px] mx-auto h-full px-4 sm:px-8 flex items-center justify-between gap-4">
-          {/* Left: Brand Wordmark + Tag */}
+          {/* Left: Official Brand Logo */}
           <Link
             to="/"
-            className="flex items-center gap-2.5 group focus:outline-none relative py-1"
+            className="flex items-center gap-2.5 group focus:outline-none relative py-1 shrink-0"
             aria-label="Bbold Salon & Academy Home"
           >
-            <span className="font-display text-2xl sm:text-3xl font-black tracking-tight text-[#15110F] group-hover:text-[#C4262E] transition-colors relative">
-              Bbold
-              <span
-                aria-hidden="true"
-                className="absolute -bottom-0.5 left-0 right-0 h-[3px] bg-[#15110F] origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-300 ease-out"
-              />
-            </span>
-            <span className="hidden sm:inline-block px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase tracking-[0.14em] bg-[#E8A317] text-[#15110F] border-2 border-[#15110F]">
-              Salon · Academy
-            </span>
+            <BrandLogo
+              variant="dark"
+              sizeClass={scrolled ? 'h-10 sm:h-11' : 'h-12 sm:h-14'}
+            />
           </Link>
 
           {/* Center: Desktop Navigation Links (Larger, Extra Bold, Black Left-to-Right Hover Underline) */}
@@ -278,14 +273,13 @@ export const PublicShell: React.FC = () => {
           className="fixed inset-0 z-[150] bg-[#15110F] text-[#F5F0E8] flex flex-col justify-between p-6 sm:p-10 overflow-y-auto lg:hidden"
         >
           <div className="flex items-center justify-between border-b border-[#F5F0E8]/15 pb-4">
-            <div>
-              <span className="font-display text-3xl font-extrabold tracking-tight text-[#F5F0E8]">
-                Bbold
-              </span>
-              <span className="ml-2 font-mono text-[11px] uppercase tracking-widest text-[#F2C9C0]">
-                Salon &amp; Academy
-              </span>
-            </div>
+            <Link
+              to="/"
+              onClick={() => setMobileMenuOpen(false)}
+              className="inline-flex items-center"
+            >
+              <BrandLogo variant="light" sizeClass="h-11 sm:h-12" />
+            </Link>
             <button
               type="button"
               onClick={() => setMobileMenuOpen(false)}
@@ -369,8 +363,13 @@ export const PublicShell: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-10 pb-14 border-b border-[#F5F0E8]/15">
             {/* Col 1..4: Brand & Tagline */}
             <div className="lg:col-span-4 space-y-4">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#F5F0E8]/10 text-[#F2C9C0] font-mono text-xs uppercase tracking-widest">
-                <span>Salon · Academy · Mumbai</span>
+              <Link to="/" className="inline-block group focus:outline-none">
+                <BrandLogo variant="light" sizeClass="h-14 sm:h-16" />
+              </Link>
+              <div>
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#F5F0E8]/10 text-[#F2C9C0] font-mono text-xs uppercase tracking-widest">
+                  <span>Salon · Academy · Mumbai</span>
+                </div>
               </div>
               <p className="text-sm text-[#F5F0E8]/80 max-w-sm leading-relaxed">
                 {siteTexts.footer?.final_line ||

@@ -26,6 +26,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { BrandLogo } from '../common/BrandLogo';
 import { adminGetAppointments } from '../../lib/adminApi';
 import { supabase, isSupabaseConfigured } from '../../lib/supabase';
 import {
@@ -193,10 +194,9 @@ export const AdminShell: React.FC = () => {
     <div className="flex flex-col h-full justify-between p-4">
       <div className="space-y-6">
         <div className="px-2 pt-1 flex items-center justify-between">
-          <div>
-            <div className="font-display font-bold text-lg text-[#15110F]">Bbold Admin</div>
-            <div className="text-[12px] leading-[16px] text-[#6B6560]">Salon &amp; Academy</div>
-          </div>
+          <Link to="/admin" className="inline-flex items-center gap-2 group">
+            <BrandLogo variant="dark" sizeClass="h-9" badge="Admin" />
+          </Link>
           <button
             type="button"
             onClick={() => setDrawerOpen(false)}

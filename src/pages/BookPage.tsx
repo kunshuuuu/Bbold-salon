@@ -40,6 +40,7 @@ import {
   getRoomForCategory,
 } from '../config/site';
 import { useSiteData } from '../context/SiteDataContext';
+import { BrandLogo } from '../components/common/BrandLogo';
 import { SampleTag } from '../components/common/SampleTag';
 import { Illustration } from '../components/visual/IllustrationKit';
 import type {
@@ -485,9 +486,10 @@ export const BookPage: React.FC = () => {
       <header className="sticky top-0 z-[100] h-[72px] bg-[#F5F0E8] border-b border-[#15110F]/10 px-6 md:px-12 flex items-center justify-between">
         <Link
           to="/"
-          className="font-display font-extrabold text-2xl tracking-tight text-[#15110F]"
+          className="flex items-center group focus:outline-none py-1 shrink-0"
+          aria-label="Bbold Salon & Academy Home"
         >
-          {SITE_CONFIG.shortBrandName}
+          <BrandLogo variant="dark" sizeClass="h-10 sm:h-11" badge="Booking Desk" />
         </Link>
 
         <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-[#15110F]/80">
